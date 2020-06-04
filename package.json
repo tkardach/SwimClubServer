@@ -1,0 +1,29 @@
+{
+  "name": "swimclubserver",
+  "version": "1.0.0",
+  "description": "Backend for Saratoga Swim Club using Node.js/Express.js",
+  "main": "index.js",
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "scripts": {
+    "test": "jest --verbose --detectOpenHandles --runInBand --forceExit",
+    "debug": "nodemon --inspect ./server.js",
+    "test-debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand"
+  },
+  "author": "Kardach, Thomas",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.0.0",
+    "jest-cli": "^26.0.0",
+    "supertest": "^4.0.2"
+  },
+  "dependencies": {
+    "config": "^3.3.1",
+    "express": "^4.17.1",
+    "joi": "^14.3.1",
+    "joi-objectid": "^3.0.1",
+    "mongoose": "^5.9.17",
+    "winston": "^3.2.1"
+  }
+}
