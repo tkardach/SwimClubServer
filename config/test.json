@@ -1,4 +1,5 @@
 {
   "port": "0",
-  "db": "mongodb://localhost/server_test"
+  "db": "mongodb://localhost/server_test",
+  "jwtPrivateKey": "test"
 }

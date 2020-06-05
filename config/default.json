@@ -1,4 +1,5 @@
 {
   "port": "9507",
-  "db": "mongodb://localhost/swimclub"
+  "db": "mongodb://localhost/swimclub",
+  "jwtPrivateKey": ""
 }

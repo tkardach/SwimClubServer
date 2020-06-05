@@ -10,13 +10,15 @@ Joi.objectId = require('joi-objectid')(Joi);
 const MemberTypeEnum = ["BD","PL","PM","CL","BE","TR","LE","CO","SL"];
 
 const memberSchema = new mongoose.Schema({
-  _id: { type: String },
-  lastName: { 
-    type: String,
-    required: true
-  },
+  _id: { type: Number },
   certificateNumber: {
     type: Number,
+    required: true,
+    unique: true,
+    immutable: true
+  },
+  lastName: { 
+    type: String,
     required: true,
     unique: true
   },
@@ -53,7 +55,6 @@ const memberSchema = new mongoose.Schema({
   secondaryEmail: String,
   director: {
     type: Boolean,
-    required: true,
     default: false
   },
   dirEmail: String,
@@ -69,7 +70,7 @@ const memberSchema = new mongoose.Schema({
 
 function validatePhoneNumber(number) {
   var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
-  if(number.value.match(phoneno))
+  if(number.match(phoneno))
     return true;
   return false;
 }
@@ -81,7 +82,7 @@ memberSchema.path('secondaryPhone').validate(validatePhoneNumber, ValidationStri
 
 function validateEmail(mail) 
 {
- if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(myForm.emailAddr.value))
+ if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
     return true;
   return false;
 }
@@ -95,6 +96,7 @@ const Member = mongoose.model("Member", memberSchema);
 // Validates a /POST request
 function validatePostMember(member) {
   const schema = {
+    _id: Joi.number().disallow(),
     lastName: Joi.string().required(),
     certificateNumber: Joi.number().required(),
     type: Joi.valid(...MemberTypeEnum).required(),
@@ -142,5 +144,6 @@ function validatePutMember(member) {
 
 
 module.exports.Member = Member;
+module.exports.MemberTypeEnum = MemberTypeEnum;
 module.exports.validatePostMember = validatePostMember;
 module.exports.validatePutMember = validatePutMember;

@@ -14,6 +14,8 @@ const members = require('../routes/members');
 const reservations = require('../routes/reservations');
 const dates = require('../routes/dates');
 const express = require('express');
+const auth = require('../routes/auth');
+const users = require('../routes/users');
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -50,6 +52,14 @@ module.exports = function (app) {
   //   saveUninitialized: true,
   //   resave: false
   // }));
+  
+  app.use('/api/auth', auth);
+  app.use('/api/members', members);
+  app.use('/api/reservations', reservations);
+  app.use('/api/dates', dates);
+  app.use('/api/users', users);
+  app.use('/', home);
+
   // Error handling middleware
   app.use(error);
 }

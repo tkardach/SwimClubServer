@@ -13,7 +13,8 @@ if (!String.prototype.format) {
 const ValidationStrings = {
   Member: {
     InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',
-    InvalidEmail: 'Value `{VALUE}` is not a valid email address.'
+    InvalidEmail: 'Value `{VALUE}` is not a valid email address.',
+    AlreadyExists: 'Member with that last name and/or certificate number already exists'
   }
 }
 
