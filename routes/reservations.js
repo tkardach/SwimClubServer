@@ -1,12 +1,24 @@
-const {Reservation} = require('../models/reservation');
+const {Reservation, validatePostReservation, validatePutReservation} = require('../models/reservation');
+const {auth, checkAuth} = require('../middleware/auth');
+const {admin, checkAdmin} = require('../middleware/admin');
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
+const {ValidationStrings} = require('../shared/strings');
 
 
 // GET from the database
-router.get('/', async (req, res) => {
-  res.status(200).send("");
+router.get('/', [checkAuth, checkAdmin], async (req, res) => {
+  const reservations = await Reservation.find();
+
+  if (!req.isAuthenticated || !req.isAdmin) {
+    for(let i=0; i<reservations.count; i++) {
+      if (reservations[i].member != ValidationStrings.Reservation.EmptyReservation)
+        reservations[i].member = ValidationStrings.Reservation.ReservedReservation;
+    }
+  }
+
+  res.status(200).send(reservations);
 });
 
 // GET by id from database

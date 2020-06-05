@@ -5,11 +5,13 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 Joi.objectId = require('joi-objectid')(Joi);
+const {ValidationStrings} = require('../shared/strings');
 
 const reservationSchema = new mongoose.Schema({
   member: {
-    type: mongoose.Schema.Types.Number,
-    ref: 'Member'
+    type: mongoose.Schema.Types.String,
+    ref: 'Member',
+    default: ValidationStrings.Reservation.EmptyReservation
   },
   startTime: {
     type: Date,

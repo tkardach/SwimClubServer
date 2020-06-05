@@ -10,7 +10,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const MemberTypeEnum = ["BD","PL","PM","CL","BE","TR","LE","CO","SL"];
 
 const memberSchema = new mongoose.Schema({
-  _id: { type: Number },
+  _id: { type: String },
   certificateNumber: {
     type: Number,
     required: true,
@@ -96,7 +96,7 @@ const Member = mongoose.model("Member", memberSchema);
 // Validates a /POST request
 function validatePostMember(member) {
   const schema = {
-    _id: Joi.number().disallow(),
+    _id: Joi.string().disallow(),
     lastName: Joi.string().required(),
     certificateNumber: Joi.number().required(),
     type: Joi.valid(...MemberTypeEnum).required(),

@@ -18,6 +18,10 @@ const ValidationStrings = {
   },
   Due: {
     InvalidMembershipYear: 'Value `{VALUE}` is not a valid membership year.'
+  },
+  Reservation: {
+    EmptyReservation: 'empty',
+    ReservedReservation: 'reserved'
   }
 }
 
