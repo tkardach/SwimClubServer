@@ -1,6 +1,6 @@
 const {Member, validatePostMember, validatePutMember} = require('../models/member');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const {auth, checkAuth} = require('../middleware/auth');
+const {admin, checkAdmin} = require('../middleware/admin');
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
@@ -10,10 +10,16 @@ const _ = require('lodash');
 
 
 // GET from the database
-router.get('/', async (req, res) => {
-  const members = await Member.find().select(
-    '_id certificateNumber lastName numberOfMembers'
-  );
+router.get('/', [checkAuth, checkAdmin], async (req, res) => {
+  let members;
+  // If request is from admin, return all information
+  if (req.isAuthenticated && req.isAdmin)
+    members = await Member.find();
+  else {
+    members = await Member.find().select(
+      '_id certificateNumber lastName numberOfMembers'
+    );  
+  }
 
   res.status(200).send(members);
 });

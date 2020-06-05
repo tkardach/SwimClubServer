@@ -4,8 +4,8 @@ const Joi = require('joi');
 const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const {auth, checkAuth} = require('../middleware/auth');
+const {admin, checkAdmin} = require('../middleware/admin');
 
 // GET all users in database
 router.get('/', [auth, admin], async (req, res) => {

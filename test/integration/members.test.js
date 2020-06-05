@@ -78,6 +78,32 @@ describe('/api/members', () => {
         .get('/api/members');
     }
 
+    const adminExec = () => {
+      return request(server)
+        .get('/api/members')
+        .set('x-auth-token', token);
+    }
+
+    function verifyNoSensitiveData(res) {
+      expect(res.body[0]).not.toHaveProperty('address');
+      expect(res.body[0]).not.toHaveProperty('primaryPhone');
+      expect(res.body[0]).not.toHaveProperty('secondaryPhone');
+      expect(res.body[0]).not.toHaveProperty('primaryEmail');
+      expect(res.body[0]).not.toHaveProperty('secondaryEmail');
+      expect(res.body[0]).not.toHaveProperty('dirEmail');
+      expect(res.body[0]).not.toHaveProperty('dirPhone');
+      expect(res.body[0]).not.toHaveProperty('location');
+      expect(res.body[0]).not.toHaveProperty('zip');
+    }
+
+    function verifySensitiveData(res) {
+      expect(res.body[0]).toHaveProperty('address');
+      expect(res.body[0]).toHaveProperty('primaryPhone');
+      expect(res.body[0]).toHaveProperty('primaryEmail');
+      expect(res.body[0]).toHaveProperty('location');
+      expect(res.body[0]).toHaveProperty('zip');
+    }
+
     it('should return 200 on successful request', async () => {
       const res = await exec();
       expect(res.status).toBe(200);
@@ -107,15 +133,40 @@ describe('/api/members', () => {
     it('should NOT return any sensitive member information', async () => {
       const res = await exec();
       expect(res.status).toBe(200);
-      expect(res.body[0]).not.toHaveProperty('address');
-      expect(res.body[0]).not.toHaveProperty('primaryPhone');
-      expect(res.body[0]).not.toHaveProperty('secondaryPhone');
-      expect(res.body[0]).not.toHaveProperty('primaryEmail');
-      expect(res.body[0]).not.toHaveProperty('secondaryEmail');
-      expect(res.body[0]).not.toHaveProperty('dirEmail');
-      expect(res.body[0]).not.toHaveProperty('dirPhone');
-      expect(res.body[0]).not.toHaveProperty('location');
-      expect(res.body[0]).not.toHaveProperty('zip');
+      verifyNoSensitiveData(res);
+    });
+
+    it('should return sensitive member information for admins', async () => {
+      const res = await adminExec();
+      expect(res.status).toBe(200);
+      verifySensitiveData(res);
+    });
+
+    it('should return not return 400 for a bad token', async () => {
+      token = 'badToken'
+      const res = await adminExec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return not return sensitive member information with empty token', async () => {
+      token = ''
+      const res = await adminExec();
+      expect(res.status).toBe(200);
+      verifyNoSensitiveData(res);
+    });
+
+    it('should return not return sensitive member information for non-admins', async () => {
+      const user = await User.findByIdAndUpdate(userId, {
+        $set: {
+          isAdmin: false
+        }
+      }, {new:true});
+      
+      token = user.generateAuthToken();
+  
+      const res = await adminExec();
+      expect(res.status).toBe(200);
+      verifyNoSensitiveData(res);
     });
   });
 
@@ -170,9 +221,17 @@ describe('/api/members', () => {
     });
 
     it('should return 401 if no token is provided', async () => {
-      token = "";
+      token = '';
+
       const res = await exec();
       expect(res.status).toBe(401);
+    });
+
+    it('should return 400 if token is invalid', async () => {
+      token = 'TestValues';
+
+      const res = await exec();
+      expect(res.status).toBe(400);
     });
 
     it('should return 403 if the user is not an admin', async () => {
@@ -242,9 +301,6 @@ describe('/api/members', () => {
       expect(res.status).toBe(400);
     });
 
-    // should return 400 for invalid phone number
-    // should return 400 for invalid email
-    
     it('1: should return 400 if primary phone number is invalid', async () => {
       payload.primaryPhone = "onetwothreefourfivesixseveneightnineten"
       const res = await exec();

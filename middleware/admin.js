@@ -1,6 +1,6 @@
 const {securityLogger} = require('../debug/logging');
 
-module.exports = function (req, res, next) {
+function admin(req, res, next) {
   if (!req.user.isAdmin) {
     securityLogger.log({
       level: 'warn',
@@ -10,3 +10,12 @@ module.exports = function (req, res, next) {
   }
   next();
 }
+
+function checkAdmin(req, res, next) {
+  req.isAdmin = req.user && req.user.isAdmin;
+
+  next();
+}
+
+module.exports.admin = admin; 
+module.exports.checkAdmin = checkAdmin; 

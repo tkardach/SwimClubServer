@@ -54,7 +54,7 @@ function validatePostDue(due) {
     date: Joi.date().optional(),
     amount: Joi.number().required(),
     check: Joi.string().required(),
-    membershipYear: Joi.string().required()
+    membershipYear: Joi.number().required()
   };
 
   return Joi.validate(due, schema);
