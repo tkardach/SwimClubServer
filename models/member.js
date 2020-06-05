@@ -69,7 +69,7 @@ const memberSchema = new mongoose.Schema({
 // Phone number validation function
 
 function validatePhoneNumber(number) {
-  var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+  var phoneno = /^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
   if(number.match(phoneno))
     return true;
   return false;

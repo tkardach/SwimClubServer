@@ -8,7 +8,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const reservationSchema = new mongoose.Schema({
   member: {
-    type: mongoose.Schema.Types.String,
+    type: mongoose.Schema.Types.Number,
     ref: 'Member'
   },
   startTime: {

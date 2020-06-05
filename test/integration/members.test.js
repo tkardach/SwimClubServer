@@ -241,5 +241,92 @@ describe('/api/members', () => {
       const res = await exec();
       expect(res.status).toBe(400);
     });
+
+    // should return 400 for invalid phone number
+    // should return 400 for invalid email
+    
+    it('1: should return 400 if primary phone number is invalid', async () => {
+      payload.primaryPhone = "onetwothreefourfivesixseveneightnineten"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('2: should return 400 if primary phone number is invalid', async () => {
+      payload.primaryPhone = "((234)-1234-231)"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('3: should return 400 if primary phone number is invalid', async () => {
+      payload.primaryPhone = "((234)-1234-23511)"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('1: should return accept different types of phone number formats', async () => {
+      payload.primaryPhone = "(555) 555 5555"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('2: should return accept different types of phone number formats', async () => {
+      payload.primaryPhone = "(555)555-5555"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('3: should return accept different types of phone number formats', async () => {
+      payload.primaryPhone = "5553334444"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('4: should return accept different types of phone number formats', async () => {
+      payload.primaryPhone = "555-555-5555"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('5: should return accept different types of phone number formats', async () => {
+      payload.primaryPhone = "555 555 5555"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('1: should return 400 if primary email is invalid', async () => {
+      payload.primaryEmail = "notanemail"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('2: should return 400 if primary email is invalid', async () => {
+      payload.primaryEmail = "12345"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('3: should return 400 if primary email is invalid', async () => {
+      payload.primaryEmail = "test@email.s"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('4: should return 400 if primary email is invalid', async () => {
+      payload.primaryEmail = "test@test"
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('1: should return 200 for different email styles', async () => {
+      payload.primaryEmail = "test@email.co"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('2: should return 200 for different email styles', async () => {
+      payload.primaryEmail = "test@email.com"
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
   });
 });

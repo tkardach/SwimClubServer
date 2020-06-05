@@ -9,13 +9,14 @@
 
 const error = require('../middleware/error');
 //const session = require('express-session');
+const express = require('express');
+const auth = require('../routes/auth');
+const users = require('../routes/users');
 const home = require('../routes/home');
 const members = require('../routes/members');
 const reservations = require('../routes/reservations');
 const dates = require('../routes/dates');
-const express = require('express');
-const auth = require('../routes/auth');
-const users = require('../routes/users');
+const dues = require('../routes/dues');
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -57,6 +58,7 @@ module.exports = function (app) {
   app.use('/api/members', members);
   app.use('/api/reservations', reservations);
   app.use('/api/dates', dates);
+  app.use('/api/dues', dues);
   app.use('/api/users', users);
   app.use('/', home);
 

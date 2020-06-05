@@ -15,6 +15,9 @@ const ValidationStrings = {
     InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',
     InvalidEmail: 'Value `{VALUE}` is not a valid email address.',
     AlreadyExists: 'Member with that last name and/or certificate number already exists'
+  },
+  Due: {
+    InvalidMembershipYear: 'Value `{VALUE}` is not a valid membership year.'
   }
 }
 
