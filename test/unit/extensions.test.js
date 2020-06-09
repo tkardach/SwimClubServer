@@ -1,6 +1,6 @@
 require('../../shared/extensions');
 
-// Test generating user token
+// Test extension methods
 describe('Date.compareDate', () => {
   it('should return -1 if date is less than compared', () => {
     let date = new Date();

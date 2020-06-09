@@ -34,10 +34,6 @@ router.post('/', [auth, admin], async (req, res) => {
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  let date = new Date(req.body.date);
-  let today = new Date();
-  if (date.compareDate(today) < 0) return res.status(400).send('err');
-
   // construct reservation from request body
   const reservation = new Reservation(_.pick(req.body,
     [

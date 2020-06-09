@@ -287,5 +287,10 @@ describe('/api/reservations', () => {
       const res = await exec();
       expect(res.status).toBe(400);
     });
+    
+    it('should return 400 if reservation time is outside open hours of the schedule', async () => {
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
   });
 });

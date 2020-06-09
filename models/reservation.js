@@ -2,6 +2,7 @@
  *  Defines the database model for a reservation
  */
 
+require('../shared/extensions');
 const Joi = require("joi");
 const mongoose = require("mongoose");
 Joi.objectId = require('joi-objectid')(Joi);
@@ -33,6 +34,13 @@ const reservationSchema = new mongoose.Schema({
 
 reservationSchema.path('startTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
 reservationSchema.path('endTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
+
+// Make sure the reservation date is equal or later than today's date
+function validateReservationDate(date) {
+  return date.compareDate(new Date()) >= 0;
+}
+
+reservationSchema.path('date').validate(validateReservationDate, ValidationStrings.Reservation.InvalidReservationDate);
 
 const Reservation = mongoose.model("Reservation", reservationSchema);
 

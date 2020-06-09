@@ -19,7 +19,8 @@ const ValidationStrings = {
   },
   Reservation: {
     EmptyReservation: 'empty',
-    ReservedReservation: 'reserved'
+    ReservedReservation: 'reserved',
+    InvalidReservationDate: 'Value `{VALUE}` is not a valid reservation date.'
   },
   Validation: {
     InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',

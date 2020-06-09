@@ -1,7 +1,7 @@
 
 // Open hours validation function
 function validateTime(time) {
-  return (time > 0) &&           // time is greater than 0
+  return (time >= 0) &&           // time is greater than 0
     (time % 100 < 60) &&         // minutes is less than 60
     (parseInt(time / 100) < 24); // hours is less than 24
 }
@@ -15,8 +15,7 @@ function validatePhoneNumber(number) {
 }
 
 // Email validation function
-function validateEmail(mail) 
-{
+function validateEmail(mail) {
  if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
     return true;
   return false;
