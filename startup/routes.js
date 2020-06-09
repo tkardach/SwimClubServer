@@ -15,7 +15,7 @@ const users = require('../routes/users');
 const home = require('../routes/home');
 const members = require('../routes/members');
 const reservations = require('../routes/reservations');
-const dates = require('../routes/dates');
+const schedules = require('../routes/schedules');
 const dues = require('../routes/dues');
 
 function uuidv4() {
@@ -57,7 +57,7 @@ module.exports = function (app) {
   app.use('/api/auth', auth);
   app.use('/api/members', members);
   app.use('/api/reservations', reservations);
-  app.use('/api/dates', dates);
+  app.use('/api/schedules', schedules);
   app.use('/api/dues', dues);
   app.use('/api/users', users);
   app.use('/', home);

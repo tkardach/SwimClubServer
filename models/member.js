@@ -4,7 +4,8 @@
 
 const Joi = require('joi');
 const mongoose = require('mongoose');
-const {ValidationStrings} = require("../shared/strings");
+const {ValidationStrings} = require('../shared/strings');
+const {validatePhoneNumber, validateEmail} = require('../shared/validation');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const MemberTypeEnum = ["BD","PL","PM","CL","BE","TR","LE","CO","SL"];
@@ -66,30 +67,14 @@ const memberSchema = new mongoose.Schema({
   }
 });
 
-// Phone number validation function
 
-function validatePhoneNumber(number) {
-  var phoneno = /^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-  if(number.match(phoneno))
-    return true;
-  return false;
-}
+memberSchema.path('primaryPhone').validate(validatePhoneNumber, ValidationStrings.Validation.InvalidPhoneNumber);
+memberSchema.path('secondaryPhone').validate(validatePhoneNumber, ValidationStrings.Validation.InvalidPhoneNumber);
 
-memberSchema.path('primaryPhone').validate(validatePhoneNumber, ValidationStrings.Member.InvalidPhoneNumber);
-memberSchema.path('secondaryPhone').validate(validatePhoneNumber, ValidationStrings.Member.InvalidPhoneNumber);
 
-// Email validation function
-
-function validateEmail(mail) 
-{
- if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
-    return true;
-  return false;
-}
-
-memberSchema.path('primaryEmail').validate(validateEmail, ValidationStrings.Member.InvalidPhoneNumber);
-memberSchema.path('secondaryEmail').validate(validateEmail, ValidationStrings.Member.InvalidEmail);
-memberSchema.path('dirEmail').validate(validateEmail, ValidationStrings.Member.InvalidEmail);
+memberSchema.path('primaryEmail').validate(validateEmail, ValidationStrings.Validation.InvalidPhoneNumber);
+memberSchema.path('secondaryEmail').validate(validateEmail, ValidationStrings.Validation.InvalidEmail);
+memberSchema.path('dirEmail').validate(validateEmail, ValidationStrings.Validation.InvalidEmail);
 
 const Member = mongoose.model("Member", memberSchema);
 

@@ -57,19 +57,12 @@ async function generateMembers() {
 
 async function generateReservations() {
   today = new Date();
-  startDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    8, 0, 0, 0);
-  endDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    9, 30, 0, 0);
+  startDate = 800;
+  endDate = 930;
 
   let res = new Reservation({
     member: member1,
+    date: today,
     startTime: startDate,
     endTime: endDate
   });
@@ -77,18 +70,11 @@ async function generateReservations() {
 
   invacantResId = res._id;
 
-  startDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    10, 0, 0, 0);
-  endDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    11, 30, 0, 0);
+  startDate = 1000;
+  endDate = 1130;
     
   res = new Reservation({
+    date: today,
     startTime: startDate,
     endTime: endDate
   });
@@ -96,36 +82,22 @@ async function generateReservations() {
 
   vacantResId = res._id;
 
-  startDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    12, 0, 0, 0);
-  endDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    13, 30, 0, 0);
+  startDate = 1200;
+  endDate = 1330;
     
   res = new Reservation({
     member: member2,
+    date: today,
     startTime: startDate,
     endTime: endDate
   });
   await res.save()
 
-  startDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    14, 0, 0, 0);
-  endDate = new Date(
-    today.getFullYear(), 
-    today.getMonth(),
-    today.getDate() + 1,
-    15, 30, 0, 0);
+  startDate = 1400;
+  endDate = 1530;
     
   res = new Reservation({
+    date: today,
     startTime: startDate,
     endTime: endDate
   });
@@ -176,10 +148,6 @@ describe('/api/reservations', () => {
    *  GET /api/reservations
    **********************************************/
   describe('GET /', () => {
-    let payload;
-
-    beforeEach(async () => {
-    });
 
     const exec = () => {
       return request(server)
@@ -204,7 +172,6 @@ describe('/api/reservations', () => {
 
     it('should not return member names for non admins', async () => {
       const res = await exec();
-      console.log(res.body);
       res.body.forEach(reservation => {
         expect(
           reservation.member == ValidationStrings.Reservation.EmptyReservation || 
@@ -217,16 +184,108 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(200);
     });
 
-    it('should return reservation with member names on success', async () => {
-      const res = await exec();
-      expect(res.body.length).toBe(resCount);
+    it('should return reservation with member names on success for admin', async () => {
+      const res = await adminExec();
+      res.body.forEach(reservation => {
+        expect(
+          reservation.member == ValidationStrings.Reservation.EmptyReservation || 
+          reservation.member != ValidationStrings.Reservation.ReservedReservation).toBe(true);
+      })
     });
   });
 
-  // should return 400 if reservation missing start time
-  // should return 400 if reservation missing end time
-  // should return 403 if user is not an admin
-  // should return 401 if token is empty
-  // should return 400 if token is invalid
-  // should 
+  /**********************************************
+   *  POST /api/reservations
+   **********************************************/
+  describe('POST /', () => {
+    let payload;
+
+    beforeEach(() => {
+      payload = {
+        date: new Date(),
+        startTime: 800,
+        endTime: 930
+      }
+    });
+
+    const exec = () => {
+      return request(server)
+        .post('/api/reservations')
+        .set('x-auth-token', token)
+        .send(payload);
+    } 
+
+    it('should return 200 on successful request', async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should return newly created reservation on success', async () => {
+      const res = await exec();
+      expect(res.body).toHaveProperty('startTime', payload.startTime);
+      expect(res.body).toHaveProperty('endTime', payload.endTime);
+    });
+
+    it('should post to database on success', async () => {
+      const res = await exec();
+
+      const dbRes = await Reservation.find();
+
+      expect(dbRes[0]).toHaveProperty('startTime', payload.startTime);
+      expect(dbRes[0]).toHaveProperty('endTime', payload.endTime);
+    });
+    
+    it('should return 403 if user is not an admin', async () => {
+      const user = await User.findByIdAndUpdate(userId, {
+        $set: {
+          isAdmin: false
+        }
+      }, {new:true});
+      
+      token = user.generateAuthToken();
+
+      const res = await exec();
+      expect(res.status).toBe(403);
+    });
+    
+    it('should return 401 if token is empty', async () => {
+      token = '';
+
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+    
+    it('should return 400 if token is invalid', async () => {
+      token = '123';
+      
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 if reservation missing start time', async () => {
+      delete payload.startTime;
+      
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 if reservation missing end time', async () => {
+      delete payload.endTime;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 if reservation is made for a date previous to today', async () => {
+      payload.date = payload.date.setDate(payload.date.getDate() - 1);
+      
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 if reservation is made on a closed date', async () => {
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+  });
 });

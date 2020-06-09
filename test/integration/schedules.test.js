@@ -3,7 +3,7 @@ const request = require('supertest');
 
 let server;
 
-describe('/api/dates', () => {
+describe('/api/schedules', () => {
   beforeEach(() => {
     server = require('../../server');
   });
@@ -19,7 +19,7 @@ describe('/api/dates', () => {
   });
 
   /**********************************************
-   *  GET /api/dates
+   *  GET /api/schedules
    **********************************************/
   describe('GET /', () => {
     it('should return 200 on successful request', () => {

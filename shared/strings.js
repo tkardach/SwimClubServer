@@ -12,8 +12,6 @@ if (!String.prototype.format) {
 
 const ValidationStrings = {
   Member: {
-    InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',
-    InvalidEmail: 'Value `{VALUE}` is not a valid email address.',
     AlreadyExists: 'Member with that last name and/or certificate number already exists'
   },
   Due: {
@@ -22,6 +20,11 @@ const ValidationStrings = {
   Reservation: {
     EmptyReservation: 'empty',
     ReservedReservation: 'reserved'
+  },
+  Validation: {
+    InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',
+    InvalidEmail: 'Value `{VALUE}` is not a valid email address.',
+    InvalidTime: 'Value `{VALUE}` is not a valid time'
   }
 }
 

@@ -1,4 +1,4 @@
-const {DateModel} = require('../models/date');
+const {Schedule} = require('../models/schedule');
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');

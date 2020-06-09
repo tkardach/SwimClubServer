@@ -6,6 +6,7 @@ const Joi = require("joi");
 const mongoose = require("mongoose");
 Joi.objectId = require('joi-objectid')(Joi);
 const {ValidationStrings} = require('../shared/strings');
+const {validateTime} = require('../shared/validation');
 
 const reservationSchema = new mongoose.Schema({
   member: {
@@ -13,12 +14,16 @@ const reservationSchema = new mongoose.Schema({
     ref: 'Member',
     default: ValidationStrings.Reservation.EmptyReservation
   },
-  startTime: {
+  date: {
     type: Date,
     required: true
   },
+  startTime: {
+    type: Number,
+    required: true
+  },
   endTime: {
-    type: Date,
+    type: Number,
     required: true
   }
 }, 
@@ -26,12 +31,16 @@ const reservationSchema = new mongoose.Schema({
   timestamps: true
 });
 
+reservationSchema.path('startTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
+reservationSchema.path('endTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
+
 const Reservation = mongoose.model("Reservation", reservationSchema);
 
 // Validates a /POST request
 function validatePostReservation(res) {
   const schema = {
     member: Joi.objectId().optional(),
+    date: Joi.date().required(),
     startTime: Joi.date().required(),
     endTime: Joi.date().required()
   };
@@ -43,6 +52,7 @@ function validatePostReservation(res) {
 function validatePutReservation(res) {
   const schema = {
     member: Joi.objectId().allow('').optional(),
+    date: Joi.date().optional(),
     startTime: Joi.date().optional(),
     endTime: Joi.date().optional()
   };
