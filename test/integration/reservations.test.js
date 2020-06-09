@@ -1,5 +1,6 @@
 const {Member, MemberTypeEnum} = require('../../models/member');
 const {Reservation} = require('../../models/reservation');
+const {Schedule} = require('../../models/schedule');
 const {User} = require('../../models/user');
 const mongoose = require('mongoose');
 const request = require('supertest');
@@ -135,6 +136,7 @@ describe('/api/reservations', () => {
     await Member.deleteMany({});
     await User.deleteMany({});
     await Reservation.deleteMany({});
+    await Schedule.deleteMany({});
     if (server) {
       await server.close();
     }
@@ -193,14 +195,114 @@ describe('/api/reservations', () => {
       })
     });
   });
+  
+
+  /**********************************************
+   *  GET /api/reservations/date/:date
+   **********************************************/
+  describe('GET /date/:date', () => {
+    let targetDate;
+
+    beforeEach(async () => {
+      targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + 14);
+    
+      let res = new Reservation({
+        member: member1,
+        date: targetDate,
+        startTime: 800,
+        endTime: 930
+      });
+      await res.save()
+    
+      res = new Reservation({
+        member: member2,
+        date: targetDate,
+        startTime: 1000,
+        endTime: 1130
+      });
+      await res.save();
+        
+      res = new Reservation({
+        member: member3,
+        date: targetDate,
+        startTime: 1200,
+        endTime: 1330
+      });
+      await res.save()
+    });
+
+    const exec = () => {
+      return request(server)
+      .get('/api/reservations/date/' + targetDate);
+    }
+
+    const adminExec = () => {
+      return request(server)
+        .get('/api/reservations/date/' + targetDate)
+        .set('x-auth-token', token);
+    }
+
+    it('should return 200 on successful request', async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should return reservation on success', async () => {
+      const res = await exec();
+      expect(res.body.length).toBe(3);
+    });
+
+    it('should not return member names for non admins', async () => {
+      const res = await exec();
+      res.body.forEach(reservation => {
+        expect(
+          reservation.member == ValidationStrings.Reservation.EmptyReservation || 
+          reservation.member == ValidationStrings.Reservation.ReservedReservation).toBe(true);
+      })
+    });
+
+    it('should return 200 on successful admin request', async () => {
+      const res = await adminExec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should return reservation with member names on success for admin', async () => {
+      const res = await adminExec();
+      res.body.forEach(reservation => {
+        expect(
+          reservation.member == ValidationStrings.Reservation.EmptyReservation || 
+          reservation.member != ValidationStrings.Reservation.ReservedReservation).toBe(true);
+      })
+    });
+  });
 
   /**********************************************
    *  POST /api/reservations
    **********************************************/
   describe('POST /', () => {
     let payload;
+    let scheduleId;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+      let start = new Date();
+      start.setDate(0);
+      let end = new Date(start);
+      end.setMonth((start.getMonth() + 1) % 12);
+      
+
+      let schedule = new Schedule({
+        weekdays: 127,  // open everyday
+        start: start,
+        end: end,
+        startTime: 800,
+        endTime: 2100 
+      });
+
+      await schedule.save();
+      scheduleId = schedule._id;
+
+
       payload = {
         date: new Date(),
         startTime: 800,
@@ -283,12 +385,34 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('should return 400 if reservation is made on a closed date', async () => {
+    it('should return 400 if reservation date is invalid', async () => {
+      payload.date = 'abcd';
+      
       const res = await exec();
       expect(res.status).toBe(400);
     });
     
-    it('should return 400 if reservation time is outside open hours of the schedule', async () => {
+    it('should return 400 if reservation is made on a closed date', async () => {
+      await Schedule.findByIdAndUpdate(scheduleId, {
+        $set: {
+          weekdays: 0
+        }
+      });
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 if reservation time is outside start hours of the schedule', async () => {
+      payload.startTime = 700;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 if reservation time is outside end hours of the schedule', async () => {
+      payload.endTime = 2130;
+
       const res = await exec();
       expect(res.status).toBe(400);
     });

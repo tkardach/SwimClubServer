@@ -1,3 +1,4 @@
+require('../shared/extensions');
 const Joi = require("joi");
 const mongoose = require("mongoose");
 Joi.objectId = require('joi-objectid')(Joi);
@@ -80,11 +81,67 @@ const scheduleSchema = new mongoose.Schema({
 },
 { timestamps: true });
 
+scheduleSchema.statics.byDate = function(date) {
+  return this
+    .findOne()
+    .where('start').lte(date)
+    .where('end').gte(date)
+    .sort({'created_at': -1});
+}
+
+scheduleSchema.statics.getCurrent = function() {
+  const today = new Date();
+
+  return this
+    .findOne()
+    .where('start').lte(today)
+    .where('end').gte(today)
+    .sort({'created_at': -1});
+}
+
 scheduleSchema.path('startTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
 scheduleSchema.path('endTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
 
 scheduleSchema.methods.getWeekdayMask = function() {
   return getWeekdayMaskFromNumber(this.weekdays);
+}
+
+scheduleSchema.methods.isOpenOnDate = function(date) {
+  const mask = this.getWeekdayMask();
+  const target = new Date(date);
+  
+  // If invalid format, return false
+  if (isNaN(target))  return false;
+
+  // If date is outside of schedule range, return false
+  let compStart = target.compareDate(this.start);
+  let compEnd = target.compareDate(this.end);
+  if (compStart < 0 || compEnd > 0) return false;
+
+  // If closed on specific weekday, return false
+  switch (target.getDay()) {
+    case 0: // sunday
+      return mask.sunday;
+    case 1: // monday
+      return mask.monday;
+    case 2: // tuesday
+      return mask.tuesday;
+    case 3: // wednesday
+      return mask.wednesday;
+    case 4: // thursay
+      return mask.thursday;
+    case 5: // friday
+      return mask.friday;
+    case 6: // saturday
+      return mask.saturday;
+    default:
+      return false;
+  }
+}
+
+scheduleSchema.methods.isOpenDuringTime = function(time) {
+  // If time is outside of open hours, return false
+  return time >= this.startTime && time <= this.endTime;
 }
 
 const Schedule = mongoose.model("Schedule", scheduleSchema);

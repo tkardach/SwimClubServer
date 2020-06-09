@@ -32,6 +32,25 @@ const reservationSchema = new mongoose.Schema({
   timestamps: true
 });
 
+reservationSchema.statics.reservationsOnDate = function(date) {
+  let target = new Date(date);
+  let startTarget = new Date(target);
+  startTarget.setHours(0,0,0,0);
+  let endTarget = new Date(target);
+  endTarget.setDate(startTarget.getDate() + 1);
+
+  return this
+    .find()
+    .where('date').gte(startTarget).lt(endTarget);
+}
+
+reservationSchema.statics.reservationsInRange = function(date, start, finish) {
+  return this
+    .reservationsOnDate()
+    .where('startTime').lte(start)
+    .where('endTime').gte(finish);
+}
+
 reservationSchema.path('startTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
 reservationSchema.path('endTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
 

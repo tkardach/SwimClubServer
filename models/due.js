@@ -13,7 +13,7 @@ const dueSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
-    default: Date.now()
+    default: new Date()
   },
   check: {
     type: String,
