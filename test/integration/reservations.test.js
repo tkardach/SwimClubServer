@@ -417,4 +417,139 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
   });
+  
+  /**********************************************
+   *  PUT /api/reservations/:id
+   **********************************************/
+  describe('PUT /:id', () => {
+    let targetDate;
+    let resId;
+    let payload;
+    let saveStart;
+    let saveEnd;
+
+    beforeEach(async () => {
+      targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + 14);
+    
+      let res = new Reservation({
+        date: targetDate,
+        startTime: 800,
+        endTime: 930
+      });
+      await res.save()
+    
+      res = new Reservation({
+        date: targetDate,
+        startTime: 1000,
+        endTime: 1130
+      });
+      await res.save();
+        
+      saveStart = 1200;
+      saveEnd = 1330;
+      res = new Reservation({
+        date: targetDate,
+        startTime: saveStart,
+        endTime: saveEnd
+      });
+      await res.save();
+      resId = res._id;
+
+      payload = { member: member1 };
+    });
+
+    const exec = () => {
+      return request(server)
+      .put('/api/reservations/' + resId)
+      .send(payload);
+    }
+
+    const adminExec = () => {
+      return request(server)
+        .put('/api/reservations/' + resId)
+        .set('x-auth-token', token)
+        .send(payload);
+    }
+
+    it('should return 200 on successful request', async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should return new reservation on success', async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should update reservation on success', async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 400 if reservation already has a member associated with it', async () => {
+      await exec();
+
+      payload.member = member2;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 404 if member not found', async () => {
+      await Member.deleteMany({});
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 404 if reservation not found', async () => {
+      await Reservation.deleteMany({});
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it('should not allow editting reservation times for non-admins', async () => {
+      payload.startTime = 0;
+      payload.endTime = 2359;
+
+      const res = await exec();
+      expect(res.body).toHaveProperty('startTime', saveStart);
+      expect(res.body).toHaveProperty('endTime', saveEnd);
+    });
+
+    it('should allow admin to overwrite existing member', async () => {
+      await exec();
+
+      payload.member = member2;
+
+      const res = await adminExec();
+
+      const reservation = await Reservation.findById(resId);
+
+      expect(res.status).toBe(200);
+      expect(reservation.member).toBe(member2);
+    });
+
+    it('should allow admin to overwrite reservation time', async () => {
+      payload.startTime = 0;
+      payload.endTime = 2359;
+
+      const res = await adminExec();
+
+      const reservation = await Reservation.findById(resId);
+
+      expect(res.status).toBe(200);
+      expect(reservation.startTime).toBe(0);
+      expect(reservation.endTime).toBe(2359);
+    });
+
+    it('should return 400 if invalid time entered', async () => {
+      payload.startTime = 2500;
+
+      const res = await adminExec();
+      expect(res.status).toBe(400);
+    });
+  });
 });

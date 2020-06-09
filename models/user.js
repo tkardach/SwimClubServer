@@ -4,6 +4,10 @@ const Joi = require("joi");
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
+  member: {
+    type: mongoose.Schema.Types.String,
+    ref: 'Member'
+  },
   name: {
     type: String,
     required: true,

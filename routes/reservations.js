@@ -1,6 +1,7 @@
 require('../shared/extensions');
 const {Reservation, validatePostReservation, validatePutReservation} = require('../models/reservation');
 const {Schedule} = require('../models/schedule');
+const {Member} = require('../models/member');
 const {auth, checkAuth} = require('../middleware/auth');
 const {admin, checkAdmin} = require('../middleware/admin');
 const express = require('express');
@@ -95,14 +96,53 @@ router.post('/', [auth, admin], async (req, res) => {
 
 
 // PUT to database
-router.put('/:id', validateObjectId, async (req, res) => {
-  res.status(200).send("");
+router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
+  const { error } = validatePutReservation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+
+  let reservation = await Reservation.findById(req.params.id);
+  if (!reservation) return res.status(404).send(ValidationStrings.Reservation.ReservationNotFound);
+
+  let content;
+  if (req.isAuthenticated && req.isAdmin) {
+    content = _.pick(req.body,
+      [
+        'member',
+        'date',
+        'startTime',
+        'endTime'
+      ]);
+  } else {
+    // Check if reservation already has member assigned
+    if (reservation.member !== ValidationStrings.Reservation.EmptyReservation)
+      return res.status(400).send(ValidationStrings.Reservation.ReservationAlreadyReserved);
+
+    // Check if member exists
+    const member = await Member.findById(req.body.member);
+    if (!member) return res.status(404).send(ValidationStrings.Member.MemberIdNotFound);
+
+    content = _.pick(req.body,
+      [
+        'member'
+      ]);
+  }
+
+  // change contents of reservation to include PUT changes
+  _.extend(reservation, content);
+
+  // add reservation to database
+  await reservation.save(function (err, reservation) {
+    if (err)
+      res.status(400).send(err);
+    else
+      res.status(200).send(reservation);
+  });
 });
 
 
 // DELETE from database
 router.delete('/:id', validateObjectId, async (req, res) => {
-  res.status(200).send("");
+  res.status(200).send("This feature is currently under development");
 });
 
 module.exports = router;

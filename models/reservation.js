@@ -66,7 +66,7 @@ const Reservation = mongoose.model("Reservation", reservationSchema);
 // Validates a /POST request
 function validatePostReservation(res) {
   const schema = {
-    member: Joi.objectId().optional(),
+    member: Joi.string().optional(),
     date: Joi.date().required(),
     startTime: Joi.date().required(),
     endTime: Joi.date().required()
@@ -78,7 +78,7 @@ function validatePostReservation(res) {
 // Validates a /PUT request
 function validatePutReservation(res) {
   const schema = {
-    member: Joi.objectId().allow('').optional(),
+    member: Joi.string().allow('').optional(),
     date: Joi.date().optional(),
     startTime: Joi.date().optional(),
     endTime: Joi.date().optional()

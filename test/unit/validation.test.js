@@ -22,6 +22,10 @@ describe('validation', () => {
     it('should not allow hours greater than 23', () => {
       expect(validateTime(2459)).toBe(false);
     });
+
+    it('should not allow 2400', () => {
+      expect(validateTime(2400)).toBe(false);
+    });
     
     it('should allow valid time, single digit hour', () => {
       expect(validateTime(459)).toBe(true);
