@@ -77,26 +77,38 @@ const scheduleSchema = new mongoose.Schema({
   endTime: {
     type: Number,
     required: true
-  }
+  },
+  timeslots: [{type: mongoose.Schema.Types.ObjectId, ref: 'Timeslot'}],
+  maxReservations: Number
 },
 { timestamps: true });
 
 scheduleSchema.statics.byDate = function(date) {
+  const today = new Date(date);
+  today.setHours(0,0,0,0);
+  const tomorrow = new Date(date);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0,0,0,0);
+
   return this
     .findOne()
-    .where('start').lte(date)
-    .where('end').gte(date)
-    .sort({'created_at': -1});
+    .where('start').lt(tomorrow)
+    .where('end').gte(today)
+    .sort({'createdAt': -1});
 }
 
 scheduleSchema.statics.getCurrent = function() {
   const today = new Date();
+  today.setHours(0,0,0,0);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0,0,0,0);
 
   return this
     .findOne()
-    .where('start').lte(today)
+    .where('start').lt(tomorrow)
     .where('end').gte(today)
-    .sort({'created_at': -1});
+    .sort({'createdAt': -1});
 }
 
 scheduleSchema.path('startTime').validate(validateTime, ValidationStrings.Validation.InvalidTime);
@@ -150,6 +162,13 @@ const Schedule = mongoose.model("Schedule", scheduleSchema);
 function validatePostSchedule(schedule) {
   const schema = {
     weekdays: Joi.number(),
+    timeslots: Joi.array().items(
+      Joi.object({
+        startTime: Joi.number(),
+        endTime: Joi.number()
+      })
+    ).optional(),
+    maxReservations: Joi.number(),
     start: Joi.date().required(),
     end: Joi.date().required(),
     startTime: Joi.number().required(),
@@ -163,6 +182,13 @@ function validatePostSchedule(schedule) {
 function validatePutSchedule(schedule) {
   const schema = {
     weekdays: Joi.number(),
+    timeslots: Joi.array().items(
+      Joi.object({
+        startTime: Joi.number(),
+        endTime: Joi.number()
+      })
+    ).optional(),
+    maxReservations: Joi.number(),
     start: Joi.date(),
     end: Joi.date(),
     startTime: Joi.number(),

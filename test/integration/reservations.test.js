@@ -1,11 +1,14 @@
 const {Member, MemberTypeEnum} = require('../../models/member');
 const {Reservation} = require('../../models/reservation');
 const {Schedule} = require('../../models/schedule');
+const {Timeslot} = require('../../models/timeslot');
 const {User} = require('../../models/user');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcrypt');
 const {ValidationStrings} = require('../../shared/strings');
+
+let timeslots = [];
 
 let server;
 let token;
@@ -61,11 +64,16 @@ async function generateReservations() {
   startDate = 800;
   endDate = 930;
 
+  let timeslot = new Timeslot({
+    startTime: startDate,
+    endTime: endDate
+  });
+  await timeslot.save();
+
   let res = new Reservation({
     member: member1,
     date: today,
-    startTime: startDate,
-    endTime: endDate
+    timeslot: timeslot._id
   });
   await res.save()
 
@@ -73,11 +81,16 @@ async function generateReservations() {
 
   startDate = 1000;
   endDate = 1130;
+
+  timeslot = new Timeslot({
+    startTime: startDate,
+    endTime: endDate
+  });
+  await timeslot.save();
     
   res = new Reservation({
     date: today,
-    startTime: startDate,
-    endTime: endDate
+    timeslot: timeslot._id
   });
   await res.save()
 
@@ -85,28 +98,104 @@ async function generateReservations() {
 
   startDate = 1200;
   endDate = 1330;
+
+  timeslot = new Timeslot({
+    startTime: startDate,
+    endTime: endDate
+  });
+  await timeslot.save();
     
   res = new Reservation({
     member: member2,
     date: today,
-    startTime: startDate,
-    endTime: endDate
+    timeslot: timeslot._id
   });
   await res.save()
 
   startDate = 1400;
   endDate = 1530;
+
+  timeslot = new Timeslot({
+    startTime: startDate,
+    endTime: endDate
+  });
+  await timeslot.save();
     
   res = new Reservation({
     date: today,
-    startTime: startDate,
-    endTime: endDate
+    timeslot: timeslot._id
   });
   await res.save()
 
   resCount = 4;
 }
 
+async function generateScheduleAroundDate(date) {
+  let start = new Date(date);
+  start.setDate(start.getDate() - 10);
+  let end = new Date(date);
+  end.setDate(end.getDate() + 10);
+
+  let timeslot = new Timeslot({
+    startTime:800,
+    endTime:930
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+  
+  timeslot = new Timeslot({
+    startTime:1000,
+    endTime:1130
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+
+  timeslot = new Timeslot({
+    startTime:1200,
+    endTime:1330
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+  
+  timeslot = new Timeslot({
+    startTime:1400,
+    endTime:1530
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+
+  timeslot = new Timeslot({
+    startTime:1600,
+    endTime:1730
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+  
+  timeslot = new Timeslot({
+    startTime:1800,
+    endTime:1930
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+
+  timeslot = new Timeslot({
+    startTime:2000,
+    endTime:2130
+  });
+  await timeslot.save();
+  timeslots.push(timeslot._id);
+  
+  let sched = new Schedule({
+    weekdays: 127,
+    start: start,
+    end: end,
+    startTime: 0,
+    endTime: 2359,
+    timeslots: timeslots
+  });
+
+  await sched.save();
+}
 
 describe('/api/reservations', () => {
   beforeEach(async () => {
@@ -133,6 +222,7 @@ describe('/api/reservations', () => {
   });
 
   afterEach(async () => {
+    timeslots = [];
     await Member.deleteMany({});
     await User.deleteMany({});
     await Reservation.deleteMany({});
@@ -206,28 +296,27 @@ describe('/api/reservations', () => {
     beforeEach(async () => {
       targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + 14);
-    
+
+      await generateScheduleAroundDate(targetDate);
+
       let res = new Reservation({
         member: member1,
         date: targetDate,
-        startTime: 800,
-        endTime: 930
+        timeslot: timeslots[0]
       });
       await res.save()
     
       res = new Reservation({
         member: member2,
         date: targetDate,
-        startTime: 1000,
-        endTime: 1130
+        timeslot: timeslots[1]
       });
       await res.save();
         
       res = new Reservation({
         member: member3,
         date: targetDate,
-        startTime: 1200,
-        endTime: 1330
+        timeslot: timeslots[2]
       });
       await res.save()
     });
@@ -290,13 +379,20 @@ describe('/api/reservations', () => {
       let end = new Date(start);
       end.setMonth((start.getMonth() + 1) % 12);
       
+      let timeslot = new Timeslot({
+        startTime: 800,
+        endTime: 930
+      });
+
+      await timeslot.save();
 
       let schedule = new Schedule({
         weekdays: 127,  // open everyday
         start: start,
         end: end,
         startTime: 800,
-        endTime: 2100 
+        endTime: 2100,
+        timeslots: [timeslot]
       });
 
       await schedule.save();
@@ -305,8 +401,7 @@ describe('/api/reservations', () => {
 
       payload = {
         date: new Date(),
-        startTime: 800,
-        endTime: 930
+        timeslot: timeslot._id
       }
     });
 
@@ -364,16 +459,9 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return 400 if reservation missing start time', async () => {
-      delete payload.startTime;
+    it('should return 400 if reservation missing timeslot', async () => {
+      delete payload.timeslot;
       
-      const res = await exec();
-      expect(res.status).toBe(400);
-    });
-    
-    it('should return 400 if reservation missing end time', async () => {
-      delete payload.endTime;
-
       const res = await exec();
       expect(res.status).toBe(400);
     });
@@ -432,26 +520,25 @@ describe('/api/reservations', () => {
       targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + 14);
     
+      await generateScheduleAroundDate(targetDate);
+
       let res = new Reservation({
         date: targetDate,
-        startTime: 800,
-        endTime: 930
+        timeslot: timeslots[0]
       });
       await res.save()
     
       res = new Reservation({
         date: targetDate,
-        startTime: 1000,
-        endTime: 1130
+        timeslot: timeslots[1]
       });
       await res.save();
         
-      saveStart = 1200;
-      saveEnd = 1330;
+      saveStart = timeslots[2].startDate;
+      saveEnd = timeslots[2].endDate;
       res = new Reservation({
         date: targetDate,
-        startTime: saveStart,
-        endTime: saveEnd
+        timeslot: timeslots[2]
       });
       await res.save();
       resId = res._id;
@@ -511,12 +598,10 @@ describe('/api/reservations', () => {
     });
 
     it('should not allow editting reservation times for non-admins', async () => {
-      payload.startTime = 0;
-      payload.endTime = 2359;
+      payload.timeslot = timeslots[1];
 
       const res = await exec();
-      expect(res.body).toHaveProperty('startTime', saveStart);
-      expect(res.body).toHaveProperty('endTime', saveEnd);
+      expect(res.body).toHaveProperty('timeslot', timeslots[2].toHexString());
     });
 
     it('should allow admin to overwrite existing member', async () => {
@@ -533,20 +618,19 @@ describe('/api/reservations', () => {
     });
 
     it('should allow admin to overwrite reservation time', async () => {
-      payload.startTime = 0;
-      payload.endTime = 2359;
+      payload.timeslot = timeslots[1];
 
       const res = await adminExec();
 
       const reservation = await Reservation.findById(resId);
-
       expect(res.status).toBe(200);
-      expect(reservation.startTime).toBe(0);
-      expect(reservation.endTime).toBe(2359);
+      expect(reservation).toHaveProperty('timeslot', timeslots[1]);
     });
 
-    it('should return 400 if invalid time entered', async () => {
-      payload.startTime = 2500;
+    it('should return 400 if timeslot does not exist for target schedule', async () => {
+      const timeslot = new Timeslot({startTime: 10, endTime: 11});
+      await timeslot.save();
+      payload.timeslot = timeslot._id;
 
       const res = await adminExec();
       expect(res.status).toBe(400);

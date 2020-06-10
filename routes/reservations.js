@@ -72,17 +72,16 @@ router.post('/', [auth, admin], async (req, res) => {
   if (!schedule.isOpenOnDate(date))
     return res.status(400).send(ValidationStrings.Reservation.PostReservationOnClosedDate);
   
-  if (!schedule.isOpenDuringTime(req.body.startTime) || 
-    !schedule.isOpenDuringTime(req.body.endTime))
-    return res.status(400).send(ValidationStrings.Reservation.PostReservationOnClosedHours);
+  // make sure timeslot is available on this schedule
+  if (!schedule.timeslots.includes(req.body.timeslot))
+  return res.status(400).send(ValidationStrings.Reservation.ReservationTimeslotDoesNotExist);
 
   // construct reservation from request body
   const reservation = new Reservation(_.pick(req.body,
     [
       'member',
       'date',
-      'startTime',
-      'endTime'
+      'timeslot'
     ]));
 
   // add reservation to database
@@ -105,12 +104,20 @@ router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
 
   let content;
   if (req.isAuthenticated && req.isAdmin) {
+    if (req.body.timeslot) {
+      const schedule = await Schedule.byDate(reservation.date);
+      if (!schedule) return res.status(400).send(ValidationStrings.Reservation.PostReservationNoSchedule);
+    
+      // make sure timeslot is available on this schedule
+      if (!schedule.timeslots.includes(req.body.timeslot))
+        return res.status(400).send(ValidationStrings.Reservation.ReservationTimeslotDoesNotExist);
+    }
+
     content = _.pick(req.body,
       [
         'member',
         'date',
-        'startTime',
-        'endTime'
+        'timeslot'
       ]);
   } else {
     // Check if reservation already has member assigned

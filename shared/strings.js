@@ -25,13 +25,18 @@ const ValidationStrings = {
     ReservationNotFound: 'Reservation with that id was not found.',
     InvalidReservationDate: 'Value `{VALUE}` is not a valid reservation date.',
     DateParamRequired: 'Date param required for api/reservation/date/:date.',
+    ReservationTimeslotDoesNotExist: 'Timeslot is not associated with the active schedule.',
     PostReservationOnClosedDate: 'Reservation cannot be made on closed date.',
     PostReservationOnClosedHours: 'Reservation cannot be made during closed hours.',
     PostReservationNoSchedule: 'Reservation cannot be made as there is no scheduled time during this period.'
   },
   Schedule: {
     NoCurrentSchedule: 'There is no schedule set for the current time period.',
-    DateParamRequired: 'Date param required for api/schedule/date/:date.'
+    DateParamRequired: 'Date param required for api/schedule/date/:date.',
+    TimeslotOutOfRange: 'Timeslot range is outside the schedule limits.'
+  },
+  Timeslot: {
+    NoTimeslotFound: 'Timeslot with that ID could not be found.'
   },
   Validation: {
     InvalidPhoneNumber: 'Value `{VALUE}` is not a valid phone number.',
