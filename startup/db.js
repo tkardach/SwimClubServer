@@ -18,5 +18,11 @@ module.exports = async function () {
       level: 'info',
       message: 'Connected to MongoDB database.'
     });
+  })
+  .catch((err) => {
+    logger.log({
+      level: 'error',
+      message: err
+    })
   });
 }
