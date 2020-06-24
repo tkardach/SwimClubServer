@@ -11,7 +11,7 @@ if (!config.get("jwtPrivateKey")) {
     level: 'error',
     message: 'jwtPrivateKey does not exist'
   });
-  
+  process.exit(1);
 }
 
 const port = process.env.PORT || config.get('port');
