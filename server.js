@@ -45,7 +45,8 @@ try {
 }
 
 let server;
-if (process.env.NODE_ENV === 'test') {
+// currently I cannot create a trusted connection. We will have to use an unsecure connection for now
+if (process.env.NODE_ENV === 'test' || true) {
   // Start and return the server object
   server = app.listen(port, () => {
     logger.log({
