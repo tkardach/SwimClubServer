@@ -30,13 +30,6 @@ function validatePostReservation(res) {
 router.get('/', [checkAuth, checkAdmin], async (req, res) => {
 });
 
-router.get('/date/:date', [checkAuth, checkAdmin], async (req, res) => {
-});
-
-router.get('/:id', async (req, res) => {
-  res.status(200).send("");
-});
-
 router.post('/', async (req, res) => {
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(error.details[0].message);

@@ -13,10 +13,7 @@ const express = require('express');
 const auth = require('../routes/auth');
 const users = require('../routes/users');
 const home = require('../routes/home');
-const members = require('../routes/members');
 const reservations = require('../routes/reservations');
-const schedules = require('../routes/schedules');
-const dues = require('../routes/dues');
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -55,10 +52,7 @@ module.exports = function (app) {
   // }));
   
   app.use('/api/auth', auth);
-  app.use('/api/members', members);
   app.use('/api/reservations', reservations);
-  app.use('/api/schedules', schedules);
-  app.use('/api/dues', dues);
   app.use('/api/users', users);
   app.use('/', home);
 

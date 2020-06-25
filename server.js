@@ -8,6 +8,8 @@ const app = require('./app.js');
 const https = require('https');
 const fs = require('fs');
 
+// Make sure jwtPrivateKey is defined, necessary 
+// for user identification and security
 if (!config.get("jwtPrivateKey")) {
   logger.log({
     level: 'error',
@@ -16,8 +18,11 @@ if (!config.get("jwtPrivateKey")) {
   process.exit(1);
 }
 
+// Define server port
 const port = process.env.PORT || config.get('port');
 
+// Make sure server key and certificate are defined, 
+// necessary for https security (self-signed)
 if (!config.get("serverKey") || !config.get("serverCert")) {
   logger.log({
     level: 'error',
@@ -26,6 +31,8 @@ if (!config.get("serverKey") || !config.get("serverCert")) {
   process.exit(1);
 }
 
+// Make sure server key and certificate files exist,
+// necessary for security
 try {
   fs.existsSync(config.get("serverKey"));
   fs.existsSync(config.get("serverCert"));
@@ -37,6 +44,7 @@ try {
   process.exit(1);
 }
 
+// Start and return the server object
 const server = https.createServer({
   key: fs.readFileSync(config.get("serverKey")),
   cert: fs.readFileSync(config.get("serverCert"))
