@@ -7,3 +7,5 @@ tests_general.log
 tests_security.log
 tests_uncaughtEx.log
 temp
+ecosystem.config.js
+private/*

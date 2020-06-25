@@ -12,7 +12,7 @@ const _ = require('lodash');
 
 // GET from the database
 router.get('/', async (req, res) => {
-  const schedules = await Schedule.find();
+  const schedules = await Schedule.find().populate("timeslots");
   res.status(200).send(schedules);
 });
 

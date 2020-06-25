@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 Joi.objectId = require('joi-objectid')(Joi);
 const {ValidationStrings} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
+const {Timeslot} = require('./timeslot');
 
 const WeekdayEnum = {
   SUNDAY:     1,

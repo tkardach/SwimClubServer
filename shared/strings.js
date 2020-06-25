@@ -28,7 +28,8 @@ const ValidationStrings = {
     ReservationTimeslotDoesNotExist: 'Timeslot is not associated with the active schedule.',
     PostReservationOnClosedDate: 'Reservation cannot be made on closed date.',
     PostReservationOnClosedHours: 'Reservation cannot be made during closed hours.',
-    PostReservationNoSchedule: 'Reservation cannot be made as there is no scheduled time during this period.'
+    PostReservationNoSchedule: 'Reservation cannot be made as there is no scheduled time during this period.',
+    PostReservationsFull: 'Reservation cannot be made, all reservation slots have been filled'
   },
   Schedule: {
     NoCurrentSchedule: 'There is no schedule set for the current time period.',
@@ -47,4 +48,13 @@ const ValidationStrings = {
 }
 
 
+const StringConstants = {
+  Calendar: {
+    Scopes: {
+      EventsRW: "https://www.googleapis.com/auth/calendar.events"
+    }
+  }
+}
+
 module.exports.ValidationStrings = ValidationStrings;
+module.exports.StringConstants = StringConstants;

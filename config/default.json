@@ -1,5 +1,10 @@
 {
   "port": "9507",
   "db": "mongodb://localhost/swimclub",
-  "jwtPrivateKey": ""
+  "jwtPrivateKey": "",
+  "serviceEmail": "",
+  "serviceKey": "",
+  "calendarId": "",
+  "serverKey": "",
+  "serverCert": ""
 }

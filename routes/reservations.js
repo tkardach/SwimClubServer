@@ -1,153 +1,77 @@
 require('../shared/extensions');
-const {Reservation, validatePostReservation, validatePutReservation} = require('../models/reservation');
-const {Schedule} = require('../models/schedule');
-const {Member} = require('../models/member');
 const {auth, checkAuth} = require('../middleware/auth');
 const {admin, checkAdmin} = require('../middleware/admin');
+const Joi = require("joi");
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
 const {ValidationStrings} = require('../shared/strings');
+const {validateTime} = require('../shared/validation');
+const calendar = require('../modules/calendar');
 const _ = require('lodash');
+const { logError } = require('../debug/logging');
 
-// Remove member information from reservations
-function removeSensitiveData(reservations) {
-  for(let i=0; i<reservations.length; i++) {
-    if (reservations[i].member != ValidationStrings.Reservation.EmptyReservation)
-      reservations[i].member = ValidationStrings.Reservation.ReservedReservation;
-  }
-  
-  return reservations;
+
+// Validates a /POST request
+function validatePostReservation(res) {
+  const schema = {
+    summary: Joi.string().required(),
+    location: Joi.string().optional(),
+    description: Joi.string().optional(),
+    date: Joi.date().required(),
+    start: Joi.number().required(),
+    end: Joi.number().required(),
+    attendees: Joi.array().items(Joi.string()).optional()
+  };
+
+  return Joi.validate(res, schema);
 }
 
-// GET from the database
 router.get('/', [checkAuth, checkAdmin], async (req, res) => {
-  let reservations = await Reservation.find();
-
-  // Protect member information if non-admin
-  if (!req.isAuthenticated || !req.isAdmin) {
-    reservations = removeSensitiveData(reservations);
-  }
-
-  res.status(200).send(reservations);
 });
 
-// GET by specific date
 router.get('/date/:date', [checkAuth, checkAdmin], async (req, res) => {
-  if (!req.params || !req.params.date || req.params.date === undefined) 
-    return res.status(400).send(ValidationStrings.Reservation.DateParamRequired);
-
-  // convert parameter date to object date
-  const date = new Date(req.params.date);
-  if (isNaN(date)) return res.status(400).send(ValidationStrings.Validation.InvalidDateFormat);
-
-  // get all reservations made on this date
-  let reservations = await Reservation.reservationsOnDate(date);
-
-  // Protect member information if non-admin
-  if (!req.isAuthenticated || !req.isAdmin) {
-    reservations = removeSensitiveData(reservations);
-  }
-
-  res.status(200).send(reservations);
 });
 
-// GET by id from database
 router.get('/:id', async (req, res) => {
   res.status(200).send("");
 });
 
-
-// POST to database
-router.post('/', [auth, admin], async (req, res) => {
+router.post('/', async (req, res) => {
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   const date = new Date(req.body.date);
 
-  const schedule = await Schedule.byDate(date);
-  if (!schedule) return res.status(400).send(ValidationStrings.Reservation.PostReservationNoSchedule);
-
-  // make sure reservation is during open hours
-  if (!schedule.isOpenOnDate(date))
-    return res.status(400).send(ValidationStrings.Reservation.PostReservationOnClosedDate);
+  if (!validateTime(req.body.start) || !validateTime(req.body.end))
+    return res.status(400).send(ValidationStrings.Validation.InvalidTime);
   
-  // make sure timeslot is available on this schedule
-  if (!schedule.timeslots.includes(req.body.timeslot))
-  return res.status(400).send(ValidationStrings.Reservation.ReservationTimeslotDoesNotExist);
+  const event = calendar.generateEvent(
+    req.body.summary,
+    req.body.location,
+    req.body.description,
+    req.body.date,
+    req.body.date,
+    req.body.start,
+    req.body.end,
+    req.body.attendees
+  );
 
-  // construct reservation from request body
-  const reservation = new Reservation(_.pick(req.body,
-    [
-      'member',
-      'date',
-      'timeslot'
-    ]));
-
-  // add reservation to database
-  await reservation.save(function (err, reservation) {
-    if (err)
-      res.status(400).send(err);
+  try {
+    const result = await calendar.postEventToCalendar(event);
+    if (!result)
+      res.status(500).send('Failed to post event to the calendar');
     else
-      res.status(200).send(reservation);
-  });
-});
-
-
-// PUT to database
-router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
-  const { error } = validatePutReservation(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  let reservation = await Reservation.findById(req.params.id);
-  if (!reservation) return res.status(404).send(ValidationStrings.Reservation.ReservationNotFound);
-
-  let content;
-  if (req.isAuthenticated && req.isAdmin) {
-    if (req.body.timeslot) {
-      const schedule = await Schedule.byDate(reservation.date);
-      if (!schedule) return res.status(400).send(ValidationStrings.Reservation.PostReservationNoSchedule);
-    
-      // make sure timeslot is available on this schedule
-      if (!schedule.timeslots.includes(req.body.timeslot))
-        return res.status(400).send(ValidationStrings.Reservation.ReservationTimeslotDoesNotExist);
-    }
-
-    content = _.pick(req.body,
-      [
-        'member',
-        'date',
-        'timeslot'
-      ]);
-  } else {
-    // Check if reservation already has member assigned
-    if (reservation.member !== ValidationStrings.Reservation.EmptyReservation)
-      return res.status(400).send(ValidationStrings.Reservation.ReservationAlreadyReserved);
-
-    // Check if member exists
-    const member = await Member.findById(req.body.member);
-    if (!member) return res.status(404).send(ValidationStrings.Member.MemberIdNotFound);
-
-    content = _.pick(req.body,
-      [
-        'member'
-      ]);
+      res.status(200).send(result);
+  } catch (err) {
+    logError(err, 'Failed to post event to calendar');
+    return res.status(500).send('Failed to post event to the calendar');
   }
-
-  // change contents of reservation to include PUT changes
-  _.extend(reservation, content);
-
-  // add reservation to database
-  await reservation.save(function (err, reservation) {
-    if (err)
-      res.status(400).send(err);
-    else
-      res.status(200).send(reservation);
-  });
 });
 
+router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
+});
 
-// DELETE from database
 router.delete('/:id', validateObjectId, async (req, res) => {
   res.status(200).send("This feature is currently under development");
 });

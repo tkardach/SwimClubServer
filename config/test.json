@@ -1,5 +1,10 @@
 {
   "port": "0",
   "db": "mongodb://localhost/server_test",
-  "jwtPrivateKey": "test"
+  "jwtPrivateKey": "test",
+  "serviceEmail": "testEmail@test.com",
+  "serviceKey": "path/to/file",
+  "calendarId": "testId",
+  "serverKey": "httpsServerKey",
+  "serverCert": "httpsServerCert"
 }
