@@ -14,6 +14,7 @@ const auth = require('../routes/auth');
 const users = require('../routes/users');
 const home = require('../routes/home');
 const reservations = require('../routes/reservations');
+const members = require('../routes/members');
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -53,6 +54,7 @@ module.exports = function (app) {
   
   app.use('/api/auth', auth);
   app.use('/api/reservations', reservations);
+  app.use('/api/members', members);
   app.use('/api/users', users);
   app.use('/', home);
 

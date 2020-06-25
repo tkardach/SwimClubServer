@@ -1,6 +1,5 @@
-const {Schedule} = require('../../models/schedule');
-const {Timeslot} = require('../../models/timeslot');
 const {User} = require('../../models/user');
+const {Reservation} = require('../../models/reservation');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcrypt');
@@ -34,6 +33,7 @@ describe('/api/reservations', () => {
 
   afterEach(async () => {
     await User.deleteMany({});
+    await Reservation.deleteMany({});
     if (server) {
       await server.close();
     }
@@ -53,6 +53,7 @@ describe('/api/reservations', () => {
     beforeEach(async () => {
       payload = {
         summary: '#52',
+        member: '#52',
         date: new Date(),
         start: 800,
         end: 930
@@ -76,6 +77,17 @@ describe('/api/reservations', () => {
     it('should return 200 on successful request', async () => {
       const res = await exec();
       expect(res.status).toBe(200);
+    });
+
+    it('should add reservation to the database on success', async () => {
+      const res = await exec();
+
+      const db = await Reservation.find();
+
+      expect(db.length).toBe(1);
+      expect(db[0]).toHaveProperty('member', payload.member);
+      expect(db[0]).toHaveProperty('start', payload.start);
+      expect(db[0]).toHaveProperty('end', payload.end);
     });
 
     it('should return 400 when summary missing', async ()=> {

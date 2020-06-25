@@ -8,6 +8,7 @@ const validateObjectId = require('../middleware/validateObjectId');
 const {ValidationStrings} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
 const calendar = require('../modules/calendar');
+const {Reservation} = require('../models/reservation');
 const _ = require('lodash');
 const { logError } = require('../debug/logging');
 
@@ -21,7 +22,8 @@ function validatePostReservation(res) {
     date: Joi.date().required(),
     start: Joi.number().required(),
     end: Joi.number().required(),
-    attendees: Joi.array().items(Joi.string()).optional()
+    attendees: Joi.array().items(Joi.string()).optional(),
+    member: Joi.string().required()
   };
 
   return Joi.validate(res, schema);
@@ -52,13 +54,30 @@ router.post('/', async (req, res) => {
 
   try {
     const result = await calendar.postEventToCalendar(event);
+
     if (!result)
-      res.status(500).send('Failed to post event to the calendar');
-    else
+      return res.status(500).send('Failed to post event to the calendar');
+    else {
+      // construct reservation from request body
+      const reservation = new Reservation(_.pick(req.body,
+        [
+          'member',
+          'date',
+          'start',
+          'end'
+        ]));
+      // add reservation to database
+      await reservation.save(function (err, reservation) {
+        if (err) {
+          return res.status(400).send(err);
+        }
+      });
+      
       res.status(200).send(result);
+    }
   } catch (err) {
-    logError(err, 'Failed to post event to calendar');
-    return res.status(500).send('Failed to post event to the calendar');
+    logError(err, 'Error thrown while trying to post event to calendar');
+    return res.status(500).send('Error thrown while trying to post event to calendar');
   }
 });
 

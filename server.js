@@ -44,16 +44,29 @@ try {
   process.exit(1);
 }
 
-// Start and return the server object
-const server = https.createServer({
-  key: fs.readFileSync(config.get("serverKey")),
-  cert: fs.readFileSync(config.get("serverCert"))
-}, app)
-.listen(port, () => {
-  logger.log({
-    level: 'info',
-    message: `App listening on port ${port}`
+let server;
+if (process.env.NODE_ENV === 'test') {
+  // Start and return the server object
+  server = app.listen(port, () => {
+    logger.log({
+      level: 'info',
+      message: `App listening on port ${port}`
+    });
   });
-});
+}
+else 
+{
+  // Start and return the server object
+  server = https.createServer({
+    key: fs.readFileSync(config.get("serverKey")),
+    cert: fs.readFileSync(config.get("serverCert"))
+  }, app)
+  .listen(port, () => {
+    logger.log({
+      level: 'info',
+      message: `App listening on port ${port}`
+    });
+  });
+}
 
 module.exports = server;
