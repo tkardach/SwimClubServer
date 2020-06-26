@@ -5,7 +5,6 @@
 const config = require('config')
 const {logger} = require('./debug/logging');
 const app = require('./app.js');
-const https = require('https');
 const fs = require('fs');
 
 // Make sure jwtPrivateKey is defined, necessary 
@@ -45,29 +44,14 @@ try {
 }
 
 let server;
-// currently I cannot create a trusted connection. We will have to use an unsecure connection for now
-if (process.env.NODE_ENV === 'test') {
-  // Start and return the server object
-  server = app.listen(port, () => {
-    logger.log({
-      level: 'info',
-      message: `App listening on port ${port}`
-    });
+
+// Start and return the server object
+server = app.listen(port, () => {
+  logger.log({
+    level: 'info',
+    message: `App listening on port ${port}`
   });
-}
-else 
-{
-  // Start and return the server object
-  server = https.createServer({
-    key: fs.readFileSync(config.get("serverKey")),
-    cert: fs.readFileSync(config.get("serverCert"))
-  }, app)
-  .listen(port, () => {
-    logger.log({
-      level: 'info',
-      message: `App listening on port ${port}`
-    });
-  });
-}
+});
+
 
 module.exports = server;
