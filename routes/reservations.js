@@ -29,7 +29,23 @@ function validatePostReservation(res) {
   return Joi.validate(res, schema);
 }
 
-router.get('/', [checkAuth, checkAdmin], async (req, res) => {
+// Validates a /GET/:date request
+function validateGetReservation(res) {
+  const schema = {
+    date: Joi.date().required()
+  };
+
+  return Joi.validate(res, schema);
+}
+
+router.get('/:date', async (req, res) => {
+  try {
+    const result = await calendar.getEventsForDate(req.params.date);
+    res.status(200).send(result);
+  } catch (err) {
+    logError(err, 'Error thrown while trying to post event to calendar');
+    return res.status(500).send('Error thrown while trying to post event to calendar');
+  }
 });
 
 router.post('/', async (req, res) => {
