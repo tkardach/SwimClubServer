@@ -68,9 +68,30 @@ router.post('/', async (req, res) => {
     return res.status(404).send(`Member with email ${req.body.memberEmail} not found.`);
   if (member.length > 1)
     return res.status(400).send(`Multiple members with email ${req.body.memberEmail} found`);
-
   if (!(member[0].certificateNumber in paidMembers))
-    return res.status(400).send(ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName))
+    return res.status(400).send(ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName));
+  
+  const eventsForDate = await calendar.getEventsForDate(date);
+  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
+  if (memberRes.length !== 0)
+    return res.status(400).send(`Member already has more than 1 reservation for today.`);
+
+  let weekStart = new Date(date);
+  weekStart.setHours(0,0,0,0);
+  let weekEnd = new Date(date);
+
+  if (weekStart.getDay() !== 6)
+    weekStart.setDate(weekStart.getDate() - (weekStart.getDay() + 1));
+
+  if (weekEnd.getDay() === 6)
+    weekEnd.setDate(weekEnd.getDate() + 6);
+  else
+    weekEnd.setDate(weekEnd.getDate() + 6 - weekEnd.getDay());
+
+  const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
+  const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber);
+  if (memberResWeek.length >= 3) 
+    return res.status(400).send(`Member already has more than 3 reservations for this week.`);
 
   const attendees = [req.body.memberEmail]
 
