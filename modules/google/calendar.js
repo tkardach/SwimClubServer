@@ -1,39 +1,13 @@
-require('../shared/extensions');
-const { StringConstants} = require('../shared/strings');
+require('../../shared/extensions');
+const { StringConstants} = require('../../shared/strings');
 const config = require('config');
 const {google} = require('googleapis');
 const calendar = google.calendar('v3');
-const {logError} = require('../debug/logging');
+const {generateJwtClient} = require('./general');
+const {logError} = require('../../debug/logging');
 
 // Initialize constants
 const SCOPES = [StringConstants.Calendar.Scopes.EventsRW];
-
-if (!config.get('serviceKey')) {
-    logError('serviceKey not found', 'serviceKey variable could not be found');
-}
-
-const PRIVATE_KEY = require(config.get('serviceKey'));
-
-
-/**
- * Generates a JWT service account client for making calendar API calls
- */
-async function generateJwtClient() {
-    let jwtClient = new google.auth.JWT(
-        PRIVATE_KEY.client_email,
-        null,
-        PRIVATE_KEY.private_key,
-        SCOPES
-    );
-
-    try {
-        await jwtClient.authorize();
-        return jwtClient;
-    } catch (err) {
-        logError(err, 'Failed to authorize jwtClient');
-        return null;
-    }
-}
 
 
 /**
@@ -41,7 +15,7 @@ async function generateJwtClient() {
  * @param {date} date : we will query all events on this date 
  */
 async function getEventsForDate(date) {
-    let jwtClient = await generateJwtClient();
+    let jwtClient = await generateJwtClient(SCOPES);
 
     if (jwtClient === null) 
         throw "Failed to generate jwt client";
@@ -74,7 +48,7 @@ async function getEventsForDate(date) {
  * @param {endDate} endDate :  
  */
 async function getEventsForDateTime(startDate, endDate) {
-    let jwtClient = await generateJwtClient();
+    let jwtClient = await generateJwtClient(SCOPES);
 
     if (jwtClient === null) 
         throw "Failed to generate jwt client";
@@ -114,7 +88,7 @@ async function getEventsForDateAndTime(
     newStart.setHours(startTime / 100, startTime % 100, 0, 0);
     newEnd.setHours(endTime / 100, endTime % 100, 0, 0);
 
-    let jwtClient = await generateJwtClient();
+    let jwtClient = await generateJwtClient(SCOPES);
 
     if (jwtClient === null) 
         throw "Failed to generate jwt client";
@@ -142,7 +116,7 @@ async function getEventsForDateAndTime(
  * @param {event} event : event object to be posted to calendar 
  */
 async function postEventToCalendar(event) {
-    let jwtClient = await generateJwtClient();
+    let jwtClient = await generateJwtClient(SCOPES);
 
     if (jwtClient === null) 
         throw "Failed to generate jwt client";

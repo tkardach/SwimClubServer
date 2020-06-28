@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcrypt');
 const {ValidationStrings} = require('../../shared/strings');
-const calendar = require('../../modules/calendar');
+const calendar = require('../../modules/google/calendar');
 
 
 let server;

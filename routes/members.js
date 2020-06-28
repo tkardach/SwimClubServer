@@ -6,6 +6,7 @@ const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
 const {ValidationStrings} = require('../shared/strings');
 const {logInfo, logError} = require('../debug/logging');
+const sheets = require('../modules/google/sheets');
 const _ = require('lodash');
 
 
@@ -14,19 +15,26 @@ router.get('/', [checkAuth, checkAdmin], async (req, res) => {
   let members;
   // If request is from admin, return all information
   if (req.isAuthenticated && req.isAdmin)
-    members = await Member.find();
-  else {
-    members = await Member.find().select(
-      '_id certificateNumber lastName numberOfMembers'
-    );  
-  }
+    members = await sheets.getAllMembers(false);
+  else 
+    members = await sheets.getAllMembers(true);
 
   res.status(200).send(members);
 });
 
 // GET by id from database
-router.get('/:id', async (req, res) => {
-  res.status(200).send("");
+router.get('/:id', [checkAuth, checkAdmin], async (req, res) => {
+  let members;
+  // If request is from admin, return all information
+  if (req.isAuthenticated && req.isAdmin)
+    members = await sheets.getAllMembersDict(false);
+  else 
+    members = await sheets.getAllMembersDict(true);
+
+  if (!(req.params.id in members))
+    return res.status(404).send(`Member with id ${req.params.id} not found.`);
+
+  res.status(200).send(members[req.params.id]);
 });
 
 

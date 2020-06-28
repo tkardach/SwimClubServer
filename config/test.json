@@ -5,6 +5,9 @@
   "serviceEmail": "testEmail@test.com",
   "serviceKey": "path/to/file",
   "calendarId": "testId",
+  "scriptId": "testId",
+  "memberSheetId": "",
+  "sheetId": "testId",
   "serverKey": "httpsServerKey",
   "serverCert": "httpsServerCert"
 }

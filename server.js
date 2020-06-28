@@ -20,33 +20,8 @@ if (!config.get("jwtPrivateKey")) {
 // Define server port
 const port = process.env.PORT || config.get('port');
 
-// Make sure server key and certificate are defined, 
-// necessary for https security (self-signed)
-if (!config.get("serverKey") || !config.get("serverCert")) {
-  logger.log({
-    level: 'error',
-    message: 'serverKey or serverCert does not exist'
-  });
-  process.exit(1);
-}
-
-// Make sure server key and certificate files exist,
-// necessary for security
-try {
-  fs.existsSync(config.get("serverKey"));
-  fs.existsSync(config.get("serverCert"));
-} catch(err) {
-  logger.log({
-    level: 'error',
-    message: 'serverKey or serverCert file does not exist.'
-  });
-  process.exit(1);
-}
-
-let server;
-
 // Start and return the server object
-server = app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.log({
     level: 'info',
     message: `App listening on port ${port}`

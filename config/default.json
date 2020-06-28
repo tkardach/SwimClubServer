@@ -5,6 +5,9 @@
   "serviceEmail": "",
   "serviceKey": "",
   "calendarId": "",
+  "scriptId": "",
+  "memberSheetId": "",
+  "sheetId": "",
   "serverKey": "",
   "serverCert": ""
 }

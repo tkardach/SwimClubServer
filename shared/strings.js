@@ -32,7 +32,8 @@ const ValidationStrings = {
     PostReservationOnClosedDate: 'Reservation cannot be made on closed date.',
     PostReservationOnClosedHours: 'Reservation cannot be made during closed hours.',
     PostReservationNoSchedule: 'Reservation cannot be made as there is no scheduled time during this period.',
-    PostReservationsFull: 'Reservation cannot be made, all reservation slots have been filled'
+    PostReservationsFull: 'Reservation cannot be made, all reservation slots have been filled',
+    PostDuesNotPaid: 'Member {0} has not paid their dues and cannot make a reservation. Contact the Saratoga Swim Club Board of Directors if this information is incorrect.'
   },
 }
 
@@ -41,6 +42,11 @@ const StringConstants = {
   Calendar: {
     Scopes: {
       EventsRW: "https://www.googleapis.com/auth/calendar.events"
+    }
+  },
+  Sheets: {
+    Scopes: {
+      SheetsR: 'https://www.googleapis.com/auth/spreadsheets.readonly'
     }
   }
 }
