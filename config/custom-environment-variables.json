@@ -3,7 +3,8 @@
   "serviceEmail": "googleServiceEmail",
   "serviceKey": "googleServiceKey",
   "calendarId": "googleCalendarId",
-  "memberSheetId": "googleMemberSheetId",
+  "sheetId": "googleSheetId",
+  "sheetAPIKey": "googleSheetAPIKey",
   "scriptId": "googleScriptId",
   "serverKey": "httpsServerKey",
   "serverCert": "httpsServerCert"

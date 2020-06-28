@@ -6,8 +6,8 @@
   "serviceKey": "",
   "calendarId": "",
   "scriptId": "",
-  "memberSheetId": "",
   "sheetId": "",
+  "sheetAPIKey": "",
   "serverKey": "",
   "serverCert": ""
 }

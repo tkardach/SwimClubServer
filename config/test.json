@@ -6,8 +6,8 @@
   "serviceKey": "path/to/file",
   "calendarId": "testId",
   "scriptId": "testId",
-  "memberSheetId": "",
-  "sheetId": "testId",
+  "sheetId": "googleSheetId",
+  "sheetAPIKey": "googleSheetAPIKey",
   "serverKey": "httpsServerKey",
   "serverCert": "httpsServerCert"
 }

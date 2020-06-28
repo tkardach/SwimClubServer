@@ -150,9 +150,9 @@ async function getAllSheetsMembers() {
 
     try {
         const res = await sheets.spreadsheets.values.get({
-            spreadsheetId: '1AE2j_p2O5e9K_x1-WLiUsZu-SOq5oi5QYsKD6OGMvCQ',//config.get('memberSheetId'),
+            spreadsheetId: config.get('sheetId'),
             range: 'Members!A2:S',
-            key: 'AIzaSyDfSZseRSB9_S37-7_j4QOYphfFBzSBUCk'
+            key: config.get('sheetAPIKey')
         });
 
         return res.data.values;
@@ -256,9 +256,9 @@ async function getAllSheetsAccounts() {
 
     try {
         const res = await sheets.spreadsheets.values.get({
-            spreadsheetId: '1AE2j_p2O5e9K_x1-WLiUsZu-SOq5oi5QYsKD6OGMvCQ',//config.get('memberSheetId'),
+            spreadsheetId: config.get('sheetId'),
             range: 'Accounts!A4:AR',
-            key: 'AIzaSyDfSZseRSB9_S37-7_j4QOYphfFBzSBUCk'
+            key: config.get('sheetAPIKey')
         });
         return res.data.values;
     } catch (err) {
