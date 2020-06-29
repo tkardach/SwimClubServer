@@ -1,10 +1,10 @@
 const {User} = require('../../models/user');
-const {Reservation} = require('../../models/reservation');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcrypt');
 const {ValidationStrings} = require('../../shared/strings');
 const calendar = require('../../modules/google/calendar');
+const sheets = require('../../modules/google/sheets');
 
 
 let server;
@@ -33,7 +33,6 @@ describe('/api/reservations', () => {
 
   afterEach(async () => {
     await User.deleteMany({});
-    await Reservation.deleteMany({});
     if (server) {
       await server.close();
     }
@@ -49,11 +48,14 @@ describe('/api/reservations', () => {
   describe('POST /', () => {
     let payload;
     let postEventToCalendarSpy;
+    let getMembersSpy;
+    let getPaidMembersDictSpy;
+    let getEventsForDateAndTimeSpy;
+    let getEventsForDateSpy;
 
     beforeEach(async () => {
       payload = {
-        summary: '#52',
-        member: '#52',
+        memberEmail: 'test2@test.com',
         date: new Date(),
         start: 800,
         end: 930
@@ -62,10 +64,61 @@ describe('/api/reservations', () => {
       postEventToCalendarSpy = jest.spyOn(calendar, 'postEventToCalendar').mockImplementation((event) => {
         return event;
       });
+
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [];
+      })
+
+      getMembersSpy = jest.spyOn(sheets, 'getAllMembers').mockImplementation((lite) => {
+        return [
+          {
+            lastName: 'Test1',
+            certificateNumber: '1',
+            primaryEmail: 'test1@test.com',
+            secondaryEmail: 'test1@test1.com'
+          },
+          {
+            lastName: 'Test2',
+            certificateNumber: '2',
+            primaryEmail: 'test2@test.com',
+            secondaryEmail: 'test2@test2.com'
+          },
+          {
+            lastName: 'Test3',
+            certificateNumber: '3',
+            primaryEmail: 'test3@test.com',
+            secondaryEmail: 'test3@test3.com'
+          }
+        ]
+      });
+      getPaidMembersDictSpy = jest.spyOn(sheets, 'getAllPaidMembersDict').mockImplementation((lite) => {
+        return {
+          '2': {
+            lastName: 'Test2',
+            certificateNumber: '2',
+            primaryEmail: 'test2@test.com',
+            secondaryEmail: 'test2@test2.com'
+          },
+          '3': {
+            lastName: 'Test3',
+            certificateNumber: '3',
+            primaryEmail: 'test3@test.com',
+            secondaryEmail: 'test3@test3.com'
+          }
+        };
+      });
     });
 
     afterEach(() => {
       postEventToCalendarSpy.mockRestore();
+      getPaidMembersDictSpy.mockRestore();
+      getMembersSpy.mockRestore();
+      getEventsForDateSpy.mockRestore();
+      getEventsForDateAndTimeSpy.mockRestore();
     });
 
     const exec = () => {
@@ -78,21 +131,10 @@ describe('/api/reservations', () => {
       const res = await exec();
       expect(res.status).toBe(200);
     });
+    
+    it('should return 400 when memberEmail missing', async ()=> {
+      delete payload.memberEmail;
 
-    it('should add reservation to the database on success', async () => {
-      const res = await exec();
-
-      const db = await Reservation.find();
-
-      expect(db.length).toBe(1);
-      expect(db[0]).toHaveProperty('member', payload.member);
-      expect(db[0]).toHaveProperty('start', payload.start);
-      expect(db[0]).toHaveProperty('end', payload.end);
-    });
-
-    it('should return 400 when summary missing', async ()=> {
-      delete payload.summary;
-      
       const res = await exec();
       expect(res.status).toBe(400);
     });
@@ -113,6 +155,115 @@ describe('/api/reservations', () => {
 
     it('should return 400 when end missing', async ()=> {
       delete payload.end;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 when member has not paid', async ()=> {
+      payload.memberEmail = 'test1@test.com';
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 404 when member email is not found', async ()=> {
+      payload.memberEmail = "random@email.com";
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 400 when multiple member emails found', async ()=> {
+      getMembersSpy = jest.spyOn(sheets, 'getAllMembers').mockImplementation((lite) => {
+        return [
+          {
+            lastName: 'Test1',
+            certificateNumber: '1',
+            primaryEmail: 'test1@test.com',
+            secondaryEmail: 'test1@test1.com'
+          },
+          {
+            lastName: 'Test2',
+            certificateNumber: '2',
+            primaryEmail: 'test2@test.com',
+            secondaryEmail: 'test2@test2.com'
+          },
+          {
+            lastName: 'Test3',
+            certificateNumber: '3',
+            primaryEmail: 'test3@test.com',
+            secondaryEmail: 'test3@test3.com'
+          },
+          {
+            lastName: 'Test4',
+            certificateNumber: '4',
+            primaryEmail: 'test2@test.com',
+            secondaryEmail: 'test2@test2.com'
+          }
+        ]
+      });
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 when member has already made 3+ reservations in a week', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [];
+      })
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 when member has made more than 1 reservation on given day', async ()=> {
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
 
       const res = await exec();
       expect(res.status).toBe(400);

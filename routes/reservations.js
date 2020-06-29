@@ -49,50 +49,91 @@ router.get('/:date', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+  // Make sure required parameters are included in request body
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   const date = new Date(req.body.date);
 
+  // Validate the parameter time values
   if (!validateTime(req.body.start) || !validateTime(req.body.end))
     return res.status(400).send(ValidationStrings.Validation.InvalidTime);
   
+  //#region Business Logic for Creating Reservations
+
   const allMembers = await sheets.getAllMembers(false);
   const paidMembers = await sheets.getAllPaidMembersDict(true);
 
+  // Check if member making reservation exists
   const member = allMembers.filter(member => 
     member.primaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase() ||
     member.secondaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase());
 
-  if (member.length === 0)
+  if (member.length === 0) // Member does not exist
     return res.status(404).send(`Member with email ${req.body.memberEmail} not found.`);
-  if (member.length > 1)
+  if (member.length > 1) // Somehow there are multiple members with this email
     return res.status(400).send(`Multiple members with email ${req.body.memberEmail} found`);
-  if (!(member[0].certificateNumber in paidMembers))
+
+  // Check if member has paid their dues
+  if (!(member[0].certificateNumber in paidMembers)) 
     return res.status(400).send(ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName));
   
-  const eventsForDate = await calendar.getEventsForDate(date);
-  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
-  if (memberRes.length !== 0)
-    return res.status(400).send(`Member already has more than 1 reservation for today.`);
-
+  // Check if member has already made max reservations for the week
   let weekStart = new Date(date);
   weekStart.setHours(0,0,0,0);
-  let weekEnd = new Date(date);
+  let weekEnd = new Date(weekStart);
 
-  if (weekStart.getDay() !== 6)
-    weekStart.setDate(weekStart.getDate() - (weekStart.getDay() + 1));
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 1) % 7)); // weeks start on saturday, find begininning of week relative to date
 
-  if (weekEnd.getDay() === 6)
+  if (weekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
     weekEnd.setDate(weekEnd.getDate() + 6);
   else
-    weekEnd.setDate(weekEnd.getDate() + 6 - weekEnd.getDay());
+    weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
 
   const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
   const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber);
-  if (memberResWeek.length >= 3) 
-    return res.status(400).send(`Member already has more than 3 reservations for this week.`);
+  if (memberResWeek.length >= 3) {
+    const data = [];
+    memberResWeek.forEach(res => {
+      let sd = new Date(res.start.dateTime);
+      let ed = new Date(res.end.dateTime);
+      data.push({
+        htmlLink: res.htmlLink,
+        start: sd,
+        end: ed
+      });
+    })
+    const err = {
+      message: ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format('three'),
+      data: data
+    }
+    return res.status(400).send(err);
+  }
 
+  // Check if member has already made a reservation for the given date
+  const eventsForDate = await calendar.getEventsForDate(date);
+  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
+  if (memberRes.length !== 0) {
+    const data = [];
+    memberRes.forEach(res => {
+      let sd = new Date(res.start.dateTime);
+      let ed = new Date(res.end.dateTime);
+      data.push({
+        htmlLink: res.htmlLink,
+        start: sd,
+        end: ed
+      });
+    })
+    const err = {
+      message: ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format('one', date),
+      data: data
+    }
+    return res.status(400).send(err);
+  }
+
+  //#endregion
+
+  // Create event and post it to the calendar
   const attendees = [req.body.memberEmail]
 
   const event = calendar.generateEvent(

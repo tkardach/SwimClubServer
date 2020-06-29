@@ -163,8 +163,8 @@ async function getAllSheetsMembers() {
 }
 
 async function getAllMembers(lite) {
-    const sheetsMembers = await getAllSheetsMembers();
-    const accountsDict = await getAllAccountsDict();
+    const sheetsMembers = await sheets.getAllSheetsMembers();
+    const accountsDict = await sheets.getAllAccountsDict();
 
     const members = lite ? convertMembersLite(sheetsMembers) : 
                             convertMembers(sheetsMembers);
@@ -172,8 +172,8 @@ async function getAllMembers(lite) {
 }
 
 async function getAllMembersDict(lite) {
-    const sheetsMembers = await getAllSheetsMembers();
-    const accountsDict = await getAllAccountsDict();
+    const sheetsMembers = await sheets.getAllSheetsMembers();
+    const accountsDict = await sheets.getAllAccountsDict();
 
     const membersDict = lite ? convertMembersLiteDict(sheetsMembers) : 
                             convertMembersDict(sheetsMembers);
@@ -184,8 +184,8 @@ async function getAllMembersDict(lite) {
 }
 
 async function getAllPaidMembers(lite) {
-    const members = await getAllMembers(lite);
-    const accountsDict = await getAllAccountsDict();
+    const members = await sheets.getAllMembers(lite);
+    const accountsDict = await sheets.getAllAccountsDict();
 
     return members.filter(member => 
         accountsDict[member.certificateNumber] && 
@@ -193,8 +193,8 @@ async function getAllPaidMembers(lite) {
 }
 
 async function getAllPaidMembersDict(lite) {
-    const membersDict = await getAllMembersDict(lite);
-    const accountsDict = await getAllAccountsDict();
+    const membersDict = await sheets.getAllMembersDict(lite);
+    const accountsDict = await sheets.getAllAccountsDict();
 
     return _.pickBy(membersDict, function(member, cert) {
         return accountsDict[cert] && accountsDict[cert].eligibleToReserve === true;
@@ -268,17 +268,16 @@ async function getAllSheetsAccounts() {
 }
 
 async function getAllAccounts() {
-    return convertAccounts(await getAllSheetsAccounts());
+    return convertAccounts(await sheets.getAllSheetsAccounts());
 }
 
 async function getAllAccountsDict() {
-    return convertAccountsDict(await getAllSheetsAccounts());
+    return convertAccountsDict(await sheets.getAllSheetsAccounts());
 }
 
 //#endregion
 
-
-module.exports = {
+const sheets = {
     getAllSheetsMembers,
     getAllMembers,
     getAllMembersDict,
@@ -286,5 +285,9 @@ module.exports = {
     getAllPaidMembersDict,
     getAllSheetsAccounts,
     getAllAccounts,
-    getAllAccountsDict
+    getAllAccountsDict,
+    ACCOUNT_INDICES,
+    MEMBER_INDICES
 };
+
+module.exports = sheets;
