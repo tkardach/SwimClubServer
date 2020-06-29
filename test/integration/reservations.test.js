@@ -13,22 +13,6 @@ let token;
 describe('/api/reservations', () => {
   beforeEach(async () => {
     server = require('../../server');
-    
-    // Create a test user
-    let user = new User({
-      name: "Test User",
-      email: "test@user.com",
-      password: "P@ssword!",
-      isAdmin: true
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-    await user.save();
-
-    userId = user._id;
-
-    token = user.generateAuthToken();
   });
 
   afterEach(async () => {

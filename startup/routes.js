@@ -8,20 +8,12 @@
 
 
 const error = require('../middleware/error');
-//const session = require('express-session');
 const express = require('express');
-const auth = require('../routes/auth');
 const users = require('../routes/users');
 const home = require('../routes/home');
 const reservations = require('../routes/reservations');
 const members = require('../routes/members');
 
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 module.exports = function (app) {
   app.use(function(req, res, next) {
@@ -43,16 +35,6 @@ module.exports = function (app) {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // app.use(session({
-  //   secret: config.get('secret'),
-  //   genid: function(req) {
-  //     return uuidv4();
-  //   },
-  //   saveUninitialized: true,
-  //   resave: false
-  // }));
-  
-  app.use('/api/auth', auth);
   app.use('/api/reservations', reservations);
   app.use('/api/members', members);
   app.use('/api/users', users);

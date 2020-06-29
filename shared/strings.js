@@ -11,6 +11,33 @@ if (!String.prototype.format) {
 }
 
 const ValidationStrings = {
+  User: {
+    InvalidCredentials: 'Invalid Email or Password.',
+    UserDoesNotExist: 'User with this email does not exist',
+    UserAlreadyExists: 'User with this email already exists',
+    MemberNotFound: 'Cannot find member with given email, make sure to use one of your swim club membership emails.',
+    Forgot: {
+      ResetSubject: 'Saratoga Swim Club Password Reset',
+      ResetBody: `
+
+<p>
+You are receiving this because you (or someone else) have requested to reset your Saratoga Swim Club account password.
+
+Please click on the following link to reset your password
+</p>
+<a href="{0}">{0}</a>
+<p>
+This link will expire in 1 hour. If you did not request this, please ignore this email and your password will remain unchanged.
+</p>
+      `,
+      ResetLinkSent: 'Reset link has been sent to {0}.',
+      TokenInvalid: 'Password Reset Token is invalid or has expired.',
+      ResetCompleteSubject: 'Your password has been changed',
+      ResetCompleteBody: `
+This is a confirmation that the password for your account {0} has been successfully changed.
+      `
+    }
+  },
   Member: {
     AlreadyExists: 'Member with that last name and/or certificate number already exists',
     MemberIdNotFound: 'Member with that id was not found.'

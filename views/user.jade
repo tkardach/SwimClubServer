@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  if user
+      a.btn.btn-link(href='/api/users/logout') Logout
+  else
+      a.btn.btn-link(href='/api/users/login') Login
+      br
+      a.btn.btn-link(href='/api/users/signup') Create Account

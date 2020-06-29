@@ -5,7 +5,7 @@
   "calendarId": "googleCalendarId",
   "sheetId": "googleSheetId",
   "sheetAPIKey": "googleSheetAPIKey",
-  "scriptId": "googleScriptId",
-  "serverKey": "httpsServerKey",
-  "serverCert": "httpsServerCert"
+  "sessionSecret": "sessionKeySecret",
+  "gmailAccount": "swimClubEmail",
+  "gmailPass": "swimClubPass"
 }
