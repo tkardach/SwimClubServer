@@ -44,7 +44,7 @@ router.get('/:date', async (req, res) => {
     res.status(200).send(result);
   } catch (err) {
     logError(err, 'Error thrown while trying to post event to calendar');
-    return res.status(500).send('Error thrown while trying to post event to calendar');
+    return res.status(500).send({message:'Error thrown while trying to post event to calendar'});
   }
 });
 
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
 
   // Check if memberEmail was supplied. If not, check for session
   if (!req.body.memberEmail && !req.user)
-    return res.status(400).send('User must be signed in to reserve a timeslot');
+    return res.status(400).send({message:'User must be signed in to reserve a timeslot'});
 
   if (!req.body.memberEmail) req.body.memberEmail = req.user.email;
 
@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 
   // Validate the parameter time values
   if (!validateTime(req.body.start) || !validateTime(req.body.end))
-    return res.status(400).send(ValidationStrings.Validation.InvalidTime);
+    return res.status(400).send({message:ValidationStrings.Validation.InvalidTime});
   
   //#region Business Logic for Creating Reservations
 
@@ -76,13 +76,13 @@ router.post('/', async (req, res) => {
     member.secondaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase());
 
   if (member.length === 0) // Member does not exist
-    return res.status(404).send(`Member with email ${req.body.memberEmail} not found.`);
+    return res.status(404).send({message:`Member with email ${req.body.memberEmail} not found.`});
   if (member.length > 1) // Somehow there are multiple members with this email
-    return res.status(400).send(`Multiple members with email ${req.body.memberEmail} found`);
+    return res.status(400).send({message:`Multiple members with email ${req.body.memberEmail} found`});
 
   // Check if member has paid their dues
   if (!(member[0].certificateNumber in paidMembers)) 
-    return res.status(400).send(ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName));
+    return res.status(400).send({message:ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName)});
   
   // Check if member has already made max reservations for the week
   let weekStart = new Date(date);
@@ -157,12 +157,12 @@ router.post('/', async (req, res) => {
     const result = await calendar.postEventToCalendar(event);
 
     if (!result)
-      return res.status(500).send('Failed to post event to the calendar');
+      return res.status(500).send({message:'Failed to post event to the calendar'});
     event.lastName = member[0].lastName;
     res.status(200).send(event);
   } catch (err) {
     logError(err, 'Error thrown while trying to post event to calendar');
-    return res.status(500).send('Error thrown while trying to post event to calendar');
+    return res.status(500).send({message:'Error thrown while trying to post event to calendar'});
   }
 });
 
@@ -171,17 +171,17 @@ router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   if (!req.user)
-    return res.status(400).send('You must be signed in to delete events.');
+    return res.status(400).send({message:'You must be signed in to delete events.'});
 
   if (!req.params.id) 
-    return res.status(400).send('Need event ID to delete event.');
+    return res.status(400).send({message:'Need event ID to delete event.'});
 
   const result = await calendar.deleteEventById(req.params.id);
 
   if (!result)
-    return res.status(500).send('Failed to delete event');
+    return res.status(500).send({message:'Failed to delete event'});
 
-  res.status(200).send("This feature is currently under development");
+  res.status(200).send("Successfully deleted event");
 });
 
 module.exports = router;

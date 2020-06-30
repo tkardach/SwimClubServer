@@ -123,6 +123,7 @@ async function getEventsForUserId(id){
 
     let date = new Date();
     date.setHours(0,0,0,0);
+    date.setDate(date.getDate() - ((date.getDay() + 1) % 7));
 
     try {
         const result = await calendar.events.list({

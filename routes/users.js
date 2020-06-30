@@ -46,7 +46,7 @@ async function generateUserInformation(user) {
     member.primaryEmail.toLowerCase() === user.email.toLowerCase() ||
     member.secondaryEmail.toLowerCase() === user.email.toLowerCase());
 
-  if (members.length > 1) return {error: 'More than 1 user found with this email.'}
+  if (members.length > 1) return {message: 'More than 1 user found with this email.'}
 
   const member = members[0];
   const events = await calendar.getEventsForUserId(member.certificateNumber);
@@ -81,12 +81,12 @@ router.post('/login', function(req, res, next) {
 
   passport.authenticate('local', function(err, user, info) {
     if (err) 
-      return res.status(400).send(ValidationStrings.User.InvalidCredentials);
+      return res.status(400).send({message: ValidationStrings.User.InvalidCredentials});
     if (!user) 
-      return res.status(404).send(ValidationStrings.User.UserDoesNotExist);
+      return res.status(404).send({message: ValidationStrings.User.UserDoesNotExist});
     req.logIn(user, function(err) {
       if (err) 
-        return res.status(400).send(ValidationStrings.User.InvalidCredentials);
+        return res.status(400).send({message: ValidationStrings.User.InvalidCredentials});
       return res.status(200).send('Login successful.');
     });
   })(req, res, next);
@@ -140,7 +140,7 @@ router.post('/signup', async (req, res) => {
 
   const findUser = await User.findOne({email: req.body.username});
   if (findUser && findUser.length !== 0) 
-    return res.status(400).send(ValidationStrings.User.UserAlreadyExists);
+    return res.status(400).send({message: ValidationStrings.User.UserAlreadyExists});
 
   const allMembers = await sheets.getAllMembers(false);
 
@@ -150,7 +150,7 @@ router.post('/signup', async (req, res) => {
     member.secondaryEmail.toLowerCase() === req.body.username.toLowerCase());
 
   if (member.length === 0) 
-    return res.status(400).send(ValidationStrings.User.MemberNotFound);
+    return res.status(400).send({message: ValidationStrings.User.MemberNotFound});
 
   var user = new User({
       email: req.body.username,
@@ -159,10 +159,10 @@ router.post('/signup', async (req, res) => {
 
   await user.save(function(err, user) {
     if (err) 
-      return res.status(400).send('Unknown error occured');
+      return res.status(400).send({message: 'Unknown error occured'});
     req.logIn(user, function(err) {
       if (err) 
-        return res.status(400).send('Unknown error occured');
+        return res.status(400).send({message: 'Unknown error occured'});
       return res.status(200).send('User successfully created.');
     });
   });
@@ -185,7 +185,8 @@ router.get('/forgot', function(req, res) {
 
 router.post('/forgot', async (req, res) => {
   try {
-    if (!req.body.email) return res.status(400).send('Email is required to reset password');
+    if (!req.body.email) 
+      return res.status(400).send({message: 'Email is required to reset password'});
 
     var token = crypto.randomBytes(20).toString('hex');
 
@@ -197,7 +198,7 @@ router.post('/forgot', async (req, res) => {
     });
 
     if (!user) 
-      return res.status(404).send('No account with that email address exists.');
+      return res.status(404).send({message: 'No account with that email address exists.'});
 
     const url = 'https://' + req.headers.host + '/api/users/reset/' + token;
 
@@ -220,14 +221,14 @@ router.post('/forgot', async (req, res) => {
   
     return res.status(200).send('Password validation has been sent');
   } catch (err) {
-    return res.status(500).send(`Error occured while sending email verification: ${err}`);
+    return res.status(500).send({message: `Error occured while sending email verification: ${err}`});
   }
 });
 
 router.get('/reset/:token', async (req, res) => {
   const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } });
   if (!user) 
-    return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid)
+    return res.status(404).send({message: ValidationStrings.User.Forgot.TokenInvalid})
   res.render('reset', {
     user: req.user
   });
@@ -237,7 +238,7 @@ router.post('/reset/:token', async (req, res, next) => {
   try {
     const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } });
     if (!user) 
-      return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid);
+      return res.status(404).send({message: ValidationStrings.User.Forgot.TokenInvalid});
   
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
@@ -245,7 +246,7 @@ router.post('/reset/:token', async (req, res, next) => {
   
     await user.save(function(err) {
       if (err) 
-        return res.status(500).send('Error while attempting to reset password')
+        return res.status(500).send({message: 'Error while attempting to reset password'})
     });
     
     var smtpTransport = nodemailer.createTransport({
@@ -265,7 +266,7 @@ router.post('/reset/:token', async (req, res, next) => {
   
     return res.status(200).send('Reset password was successful');
   } catch (err) {
-    return res.status(500).send('Error occured during password reset ')
+    return res.status(500).send({message: 'Error occured during password reset '})
   }
 });
 
