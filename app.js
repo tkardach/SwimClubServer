@@ -39,6 +39,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(function(req, res, next) {
+  var reg = /https:\/\/.*-atari-embeds.googleusercontent.com/;
   var whitelist = [
     'http://localhost:5500',
     'http://localhost:5501',
@@ -50,7 +51,7 @@ app.use(function(req, res, next) {
     'https://api.saratogaswimclub.com'
   ];
   var origin = req.headers.origin;
-  if (whitelist.indexOf(origin) > -1) {
+  if (whitelist.indexOf(origin) > -1 || origin.match(reg).length > 0) {
     res.header('Access-Control-Allow-Origin', origin);
   }
   res.header('Access-Control-Allow-Credentials', true);

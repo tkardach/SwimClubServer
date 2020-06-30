@@ -61,6 +61,17 @@ router.post('/', async (req, res) => {
 
   const date = new Date(req.body.date);
 
+  let thisWeekEnd = new Date();
+
+  if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
+  else
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay());
+
+  // Check if reservation date is greater than end of this week
+  if (thisWeekEnd.compare(date) === -1)
+    return res.status(400).send({message:'You may not make reservations after this week (ending on Friday).'})
+
   // Validate the parameter time values
   if (!validateTime(req.body.start) || !validateTime(req.body.end))
     return res.status(400).send({message:ValidationStrings.Validation.InvalidTime});
@@ -95,6 +106,8 @@ router.post('/', async (req, res) => {
     weekEnd.setDate(weekEnd.getDate() + 6);
   else
     weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
+
+  if ()
 
   const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
   const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber);
@@ -131,7 +144,7 @@ router.post('/', async (req, res) => {
       });
     })
     const err = {
-      message: ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format('one', date),
+      message: ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format('one', date.toLocaleDateString()),
       data: data
     }
     return res.status(400).send(err);
