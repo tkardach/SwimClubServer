@@ -69,7 +69,7 @@ router.post('/', async (req, res) => {
     thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay());
 
   // Check if reservation date is greater than end of this week
-  if (thisWeekEnd.compare(date) === -1)
+  if (thisWeekEnd.compareDate(date) === -1)
     return res.status(400).send({message:'You may not make reservations after this week (ending on Friday).'})
 
   // Validate the parameter time values
@@ -77,7 +77,6 @@ router.post('/', async (req, res) => {
     return res.status(400).send({message:ValidationStrings.Validation.InvalidTime});
   
   //#region Business Logic for Creating Reservations
-
   const allMembers = await sheets.getAllMembers(false);
   const paidMembers = await sheets.getAllPaidMembersDict(true);
 
@@ -107,11 +106,12 @@ router.post('/', async (req, res) => {
   else
     weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
 
-  if ()
-
   const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
   const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber);
-  if (memberResWeek.length >= 3) {
+
+  let today = new Date();
+  let sameDayRes = (memberResWeek.length === 3 && today.compareDate(date) === 0);
+  if (memberResWeek.length >= 3 && !sameDayRes) {
     const data = [];
     memberResWeek.forEach(res => {
       let sd = new Date(res.start.dateTime);
@@ -122,8 +122,10 @@ router.post('/', async (req, res) => {
         end: ed
       });
     })
+    let sameDayUsed = today.compareDate(date) === 0 ? ' And you have already used your same-day reservation for today.' : '';
+    let message = ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format('three') + sameDayUsed;
     const err = {
-      message: ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format('three'),
+      message: message,
       data: data
     }
     return res.status(400).send(err);
@@ -132,7 +134,7 @@ router.post('/', async (req, res) => {
   // Check if member has already made a reservation for the given date
   const eventsForDate = await calendar.getEventsForDate(date);
   const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
-  if (memberRes.length !== 0) {
+  if (memberRes.length !== 0 && !sameDayRes) {
     const data = [];
     memberRes.forEach(res => {
       let sd = new Date(res.start.dateTime);
