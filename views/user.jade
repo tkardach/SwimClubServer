@@ -2,8 +2,8 @@ extends layout
 
 block content
   if user
-      a.btn.btn-link(href='/api/users/logout') Logout
+      a.btn.btn-link(href='/users/logout') Logout
   else
-      a.btn.btn-link(href='/api/users/login') Login
+      a.btn.btn-link(href='/users/login') Login
       br
-      a.btn.btn-link(href='/api/users/signup') Create Account
+      a.btn.btn-link(href='/users/signup') Create Account

@@ -9,7 +9,6 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const config = require('config');
-const flash = require('express-flash');
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -28,7 +27,6 @@ app.use(session({
   saveUninitialized: true,
   resave: false
 }));
-app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 

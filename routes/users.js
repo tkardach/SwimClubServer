@@ -21,6 +21,17 @@ router.get('/', async (req, res) => {
   });
 });
 
+router.get('/session', async (req, res) => {
+  if (req.user) {
+    return res.status(200).send({
+      sessionExists : true 
+    });
+  }
+  return res.status(200).send({
+    sessionExists : false 
+  });
+});
+
 // GET current user
 router.get('/me', async (req, res) => {
   res.status(200).send(req.user);
@@ -62,15 +73,17 @@ router.get('/login/:error', function(req, res) {
 });
 
 function performLogin(req, res, next) {
+  console.log(req);
   passport.authenticate('local', function(err, user, info) {
+    console.log(err, user, info);
     if (err) 
-      return res.redirect('/api/users/login/' + USER_ERRORS.INVALID_CREDENTIALS)
+      return res.status(400).send(ValidationStrings.User.InvalidCredentials);
     if (!user) 
-      return res.redirect('/api/users/login/' + USER_ERRORS.USER_DNE)
+      return res.status(404).send(ValidationStrings.User.UserDoesNotExist);
     req.logIn(user, function(err) {
       if (err) 
-        return res.redirect('/api/users/login/' + USER_ERRORS.INVALID_CREDENTIALS)
-      return res.redirect('/api/users/me');
+        return res.status(400).send(ValidationStrings.User.InvalidCredentials);
+      return res.status(200).send('Login successful.');
     });
   })(req, res, next);
 }
@@ -124,12 +137,11 @@ router.get('/signup/:error', function(req, res) {
 async function performSignup(req, res) {
   const { error } = validate(req.body);
   if (error) 
-    return res.redirect('/api/users/signup/'+error.details[0].message);
+    return res.status(400).send(error.details[0].message);
 
   const findUser = await User.findOne({email: req.body.email});
-  if (findUser && findUser.length !== 0) {
-    return res.redirect('/api/users/signup/' + USER_ERRORS.USER_EXISTS);
-  } 
+  if (findUser && findUser.length !== 0) 
+    return res.status(400).send(ValidationStrings.User.UserAlreadyExists);
 
   const allMembers = await sheets.getAllMembers(false);
 
@@ -139,7 +151,7 @@ async function performSignup(req, res) {
     member.secondaryEmail.toLowerCase() === req.body.email.toLowerCase());
 
   if (member.length === 0) 
-    return res.redirect('/api/users/signup/' + USER_ERRORS.MEMBER_NOT_FOUND);
+    return res.status(400).send(ValidationStrings.User.MemberNotFound);
 
   var user = new User({
       email: req.body.email,
@@ -148,11 +160,11 @@ async function performSignup(req, res) {
 
   await user.save(function(err, user) {
     if (err) 
-      return res.redirect('/api/users/signup/' + 'Unknown error occured');
+      return res.status(400).send('Unknown error occured');
     req.logIn(user, function(err) {
       if (err) 
-      return res.redirect('/api/users/signup/' + 'Unknown error occured');
-      res.redirect('/api/users/me');
+        return res.status(400).send('Unknown error occured');
+      return res.status(200).send('User successfully created.');
     });
   });
 }
@@ -169,7 +181,7 @@ router.post('/signup/:error', async (req, res) => {
 
 router.get('/logout', function(req, res){
   req.logout();
-  res.redirect('/');
+  res.status(200).send('Logout successful.');
 });
 
 //#region  Forgot Email/Password
@@ -190,10 +202,8 @@ router.post('/forgot', function(req, res, next) {
     },
     function(token, done) {
       User.findOne({ email: req.body.email }, function(err, user) {
-        if (!user) {
-          req.flash('error', 'No account with that email address exists.');
-          return res.redirect('/api/users/forgot');
-        }
+        if (!user) 
+          return res.status(404).send('No account with that email address exists.');
 
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
@@ -211,7 +221,7 @@ router.post('/forgot', function(req, res, next) {
           pass: config.get('gmailPass')
         }
       });
-      const url = 'http://' + req.headers.host + '/api/users/reset/' + token;
+      const url = 'http://' + req.headers.host + '/users/reset/' + token;
       var mailOptions = {
         to: user.email,
         from: config.get('gmailAccount'),
@@ -225,7 +235,7 @@ router.post('/forgot', function(req, res, next) {
     }
   ], function(err) {
     if (err) return next(err);
-    res.redirect('/api/users/forgot');
+    return res.status(200).send('Password validation has been sent');
   });
 });
 
@@ -246,10 +256,8 @@ router.post('/reset/:token', function(req, res) {
   async.waterfall([
     function(done) {
       User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
-        if (!user) {
-          req.flash('error', ValidationStrings.User.Forgot.TokenInvalid);
-          return res.redirect('back');
-        }
+        if (!user) 
+          return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid);
 
         user.password = req.body.password;
         user.resetPasswordToken = undefined;
@@ -277,13 +285,12 @@ router.post('/reset/:token', function(req, res) {
         text: ValidationStrings.User.Forgot.ResetCompleteBody.format(user.email)
       };
       smtpTransport.sendMail(mailOptions, function(err) {
-        req.flash('success', 'Success! Your password has been changed.');
         done(err, 'done');
       });
     }
   ], function(err) {
     if (err) return next(err);
-    res.redirect('/api/users');
+    return res.status(200).send('Reset password was successful');
   });
 });
 

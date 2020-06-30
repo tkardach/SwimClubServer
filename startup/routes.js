@@ -37,7 +37,7 @@ module.exports = function (app) {
 
   app.use('/api/reservations', reservations);
   app.use('/api/members', members);
-  app.use('/api/users', users);
+  app.use('/users', users);
   app.use('/', home);
 
   // Error handling middleware
