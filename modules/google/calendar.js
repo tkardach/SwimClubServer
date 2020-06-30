@@ -112,6 +112,42 @@ async function getEventsForDateAndTime(
 }
 
 /**
+ * Gets events for a given range using numeric time values
+ * @param {Id} : Certificate number of user
+ */
+async function getEventsForUserId(id){
+    let jwtClient = await generateJwtClient(SCOPES);
+
+    if (jwtClient === null) 
+        throw "Failed to generate jwt client";
+
+    let date = new Date();
+    date.setHours(0,0,0,0);
+
+    try {
+        const result = await calendar.events.list({
+            auth: jwtClient,
+            calendarId: config.get('calendarId'),
+            timeMin: date
+        });
+    
+        const events = result.data.items;
+        const userEvents = [];
+        events.forEach(event => {
+            if (event.summary === id)
+                userEvents.push(event);
+        })
+        return userEvents;
+    } catch (err) {
+        logError(err, 
+            `Failed to retrieve events for given range:` +
+            `\n\tstartDate : ${newStart}` +
+            `\n\tendDate   : ${newEnd}`);
+        return null;
+    }
+}
+
+/**
  * Creates an event on the calendar
  * @param {event} event : event object to be posted to calendar 
  */
@@ -180,11 +216,33 @@ function generateEvent(
     }
 }
 
+async function deleteEventById(id) {
+    let jwtClient = await generateJwtClient(SCOPES);
+
+    if (jwtClient === null) 
+        throw "Failed to generate jwt client";
+
+    try {
+        const result = await calendar.events.delete({
+            auth: jwtClient,
+            calendarId: config.get('calendarId'),
+            eventId: id
+        });
+    
+        return result;
+    } catch (err) {
+        logError(err, `Failed to post event to calendar:\nEvent: ${event}`);
+        return null;
+    }
+}
+
 
 module.exports = {
     generateEvent,
     postEventToCalendar,
     getEventsForDate,
     getEventsForDateTime,
-    getEventsForDateAndTime
+    getEventsForDateAndTime,
+    getEventsForUserId,
+    deleteEventById
 }

@@ -4,7 +4,7 @@ block content
   form(method='POST')
     legend Login
     .form-group
-      label(for='username') Username
+      label(for='username') Email
       input.form-control(type='text', name='username', autofocus)
     .form-group
       label(for='password') Password
@@ -12,5 +12,5 @@ block content
     if error
       p(style='color:red;') #{error}
     button.btn.btn-primary(type='submit') Login
-    a.btn.btn-link(href='/users/forgot') Forgot Password?
-    a.btn.btn-link(href='/users/signup') Create Account
+    a.btn.btn-link(href='/api/users/forgot') Forgot Password?
+    a.btn.btn-link(href='/api/users/signup') Create Account

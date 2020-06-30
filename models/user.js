@@ -58,7 +58,7 @@ userSchema.methods.comparePassword = function(candidatePassword, cb) {
 const User = mongoose.model("User", userSchema);
 
 passport.use(new LocalStrategy(function(email, password, done) {
-  User.findOne({ email: email }, function(err, user) {
+  User.findOne({ email: email.toLowerCase() }, function(err, user) {
     if (err) return done(err);
     if (!user) return done({ message: 'Incorrect email or password.', code: USER_ERRORS.INVALID_CREDENTIALS }, false);
     user.comparePassword(password, function(err, isMatch) {
@@ -85,7 +85,7 @@ passport.deserializeUser(function(id, done) {
 function validateUser(user) {
   // Exclude isAdmin from schema, so users cannot set themselves to admins
   const schema = {
-    email: Joi.string()
+    username: Joi.string()
       .required()
       .email(),
     password: Joi.string()

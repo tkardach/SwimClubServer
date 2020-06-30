@@ -23,7 +23,7 @@ function validatePostReservation(res) {
     start: Joi.number().required(),
     end: Joi.number().required(),
     attendees: Joi.array().items(Joi.string()).optional(),
-    memberEmail: Joi.string().required()
+    memberEmail: Joi.string().optional()
   };
 
   return Joi.validate(res, schema);
@@ -52,6 +52,12 @@ router.post('/', async (req, res) => {
   // Make sure required parameters are included in request body
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
+
+  // Check if memberEmail was supplied. If not, check for session
+  if (!req.body.memberEmail && !req.user)
+    return res.status(400).send('User must be signed in to reserve a timeslot');
+
+  if (!req.body.memberEmail) req.body.memberEmail = req.user.email;
 
   const date = new Date(req.body.date);
 
@@ -163,7 +169,18 @@ router.post('/', async (req, res) => {
 router.put('/:id', [checkAuth, checkAdmin], async (req, res) => {
 });
 
-router.delete('/:id', validateObjectId, async (req, res) => {
+router.delete('/:id', async (req, res) => {
+  if (!req.user)
+    return res.status(400).send('You must be signed in to delete events.');
+
+  if (!req.params.id) 
+    return res.status(400).send('Need event ID to delete event.');
+
+  const result = await calendar.deleteEventById(req.params.id);
+
+  if (!result)
+    return res.status(500).send('Failed to delete event');
+
   res.status(200).send("This feature is currently under development");
 });
 

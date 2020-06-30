@@ -1,6 +1,4 @@
 const { User, validate, USER_ERRORS } = require('../models/user');
-const sheets = require('../modules/google/sheets');
-const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
@@ -10,8 +8,9 @@ const {admin, checkAdmin} = require('../middleware/admin');
 const {ValidationStrings} = require('../shared/strings');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const async = require('async');
 const config = require('config');
+const sheets = require('../modules/google/sheets');
+const calendar = require('../modules/google/calendar');
 
 
 router.get('/', async (req, res) => {
@@ -32,9 +31,39 @@ router.get('/session', async (req, res) => {
   });
 });
 
+async function generateUserInformation(user) {
+  const ret = {};
+
+  if (!user) return ret;
+
+  const dbUser = await User.findOne({email: user.email});
+  if (!dbUser) return ret
+
+  const allMembers = await sheets.getAllMembers(false);
+
+  // Check if member making reservation exists
+  const members = allMembers.filter(member => 
+    member.primaryEmail.toLowerCase() === user.email.toLowerCase() ||
+    member.secondaryEmail.toLowerCase() === user.email.toLowerCase());
+
+  if (members.length > 1) return {error: 'More than 1 user found with this email.'}
+
+  const member = members[0];
+  const events = await calendar.getEventsForUserId(member.certificateNumber);
+  
+  ret.user = {
+    lastName: member.lastName,
+    certificateNumber: member.certificateNumber
+  }
+
+  ret.events = events;
+
+  return ret;
+}
+
 // GET current user
 router.get('/me', async (req, res) => {
-  res.status(200).send(req.user);
+  res.status(200).send(await generateUserInformation(req.user));
 });
 
 //#region Login
@@ -45,37 +74,12 @@ router.get('/login', function(req, res) {
   });
 });
 
-router.get('/login/:error', function(req, res) {
-  if (!req.params.error) {
-    return res.render('login', {
-      user: req.user
-    });
-  }
+router.post('/login', function(req, res, next) {
+  const {error} = validate(req.body);
+  if (error) 
+    return res.status(400).send(error.details[0].message);
 
-  if (req.params.error === USER_ERRORS.INVALID_CREDENTIALS) {
-    return res.render('login', {
-      user: req.user,
-      error: ValidationStrings.User.InvalidCredentials
-    });
-  }
-
-  if (req.params.error === USER_ERRORS.USER_DNE) {
-    return res.render('login', {
-      user: req.user,
-      error: ValidationStrings.User.UserDoesNotExist
-    });
-  }
-
-  return res.render('login', {
-    user: req.user,
-    error: req.params.error
-  });
-});
-
-function performLogin(req, res, next) {
-  console.log(req);
   passport.authenticate('local', function(err, user, info) {
-    console.log(err, user, info);
     if (err) 
       return res.status(400).send(ValidationStrings.User.InvalidCredentials);
     if (!user) 
@@ -86,14 +90,6 @@ function performLogin(req, res, next) {
       return res.status(200).send('Login successful.');
     });
   })(req, res, next);
-}
-
-router.post('/login/:error', function(req, res, next) {
-  performLogin(req, res, next);
-});
-
-router.post('/login', function(req, res, next) {
-  performLogin(req, res, next);
 });
 
 //#endregion
@@ -134,12 +130,15 @@ router.get('/signup/:error', function(req, res) {
 });
 
 
-async function performSignup(req, res) {
+
+router.post('/signup', async (req, res) => {
   const { error } = validate(req.body);
   if (error) 
     return res.status(400).send(error.details[0].message);
 
-  const findUser = await User.findOne({email: req.body.email});
+  req.body.username = req.body.username.toLowerCase();
+
+  const findUser = await User.findOne({email: req.body.username});
   if (findUser && findUser.length !== 0) 
     return res.status(400).send(ValidationStrings.User.UserAlreadyExists);
 
@@ -147,14 +146,14 @@ async function performSignup(req, res) {
 
   // Check if member making reservation exists
   const member = allMembers.filter(member => 
-    member.primaryEmail.toLowerCase() === req.body.email.toLowerCase() ||
-    member.secondaryEmail.toLowerCase() === req.body.email.toLowerCase());
+    member.primaryEmail.toLowerCase() === req.body.username.toLowerCase() ||
+    member.secondaryEmail.toLowerCase() === req.body.username.toLowerCase());
 
   if (member.length === 0) 
     return res.status(400).send(ValidationStrings.User.MemberNotFound);
 
   var user = new User({
-      email: req.body.email,
+      email: req.body.username,
       password: req.body.password
     });
 
@@ -167,14 +166,6 @@ async function performSignup(req, res) {
       return res.status(200).send('User successfully created.');
     });
   });
-}
-
-router.post('/signup', async (req, res) => {
-  await performSignup(req, res);
-});
-
-router.post('/signup/:error', async (req, res) => {
-  await performSignup(req, res);
 });
 
 //#endregion
@@ -192,106 +183,90 @@ router.get('/forgot', function(req, res) {
   });
 });
 
-router.post('/forgot', function(req, res, next) {
-  async.waterfall([
-    function(done) {
-      crypto.randomBytes(20, function(err, buf) {
-        var token = buf.toString('hex');
-        done(err, token);
-      });
-    },
-    function(token, done) {
-      User.findOne({ email: req.body.email }, function(err, user) {
-        if (!user) 
-          return res.status(404).send('No account with that email address exists.');
+router.post('/forgot', async (req, res) => {
+  try {
+    if (!req.body.email) return res.status(400).send('Email is required to reset password');
 
-        user.resetPasswordToken = token;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    var token = crypto.randomBytes(20).toString('hex');
 
-        user.save(function(err) {
-          done(err, token, user);
-        });
-      });
-    },
-    function(token, user, done) {
-      var smtpTransport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: config.get('gmailAccount'),
-          pass: config.get('gmailPass')
-        }
-      });
-      const url = 'http://' + req.headers.host + '/users/reset/' + token;
-      var mailOptions = {
-        to: user.email,
-        from: config.get('gmailAccount'),
-        subject: ValidationStrings.User.Forgot.ResetSubject,
-        html: ValidationStrings.User.Forgot.ResetBody.format(url)
-      };
-      smtpTransport.sendMail(mailOptions, function(err) {
-        req.flash('info', ValidationStrings.User.Forgot.ResetLinkSent.format(user.email));
-        done(err, 'done');
-      });
-    }
-  ], function(err) {
-    if (err) return next(err);
-    return res.status(200).send('Password validation has been sent');
-  });
-});
-
-router.get('/reset/:token', function(req, res) {
-  User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
-    if (!user) {
-      req.flash('error', ValidationStrings.User.Forgot.TokenInvalid);
-      return res.redirect('/forgot');
-    }
-    res.render('reset', {
-      user: req.user
+    const user = await User.findOneAndUpdate({ email: req.body.email }, {
+      resetPasswordToken: token,
+      resetPasswordExpires: Date.now() + 3600000
+    },{
+      new: true
     });
+
+    if (!user) 
+      return res.status(404).send('No account with that email address exists.');
+
+    const url = 'https://' + req.headers.host + '/api/users/reset/' + token;
+
+    var smtpTransport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: config.get('gmailAccount'),
+        pass: config.get('gmailPass')
+      }
+    });
+
+    var mailOptions = {
+      to: req.body.email,
+      from: config.get('gmailAccount'),
+      subject: ValidationStrings.User.Forgot.ResetSubject,
+      html: ValidationStrings.User.Forgot.ResetBody.format(url)
+    };
+
+    await smtpTransport.sendMail(mailOptions);
+  
+    return res.status(200).send('Password validation has been sent');
+  } catch (err) {
+    return res.status(500).send(`Error occured while sending email verification: ${err}`);
+  }
+});
+
+router.get('/reset/:token', async (req, res) => {
+  const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } });
+  if (!user) 
+    return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid)
+  res.render('reset', {
+    user: req.user
   });
 });
 
-router.post('/reset/:token', function(req, res) {
+router.post('/reset/:token', async (req, res, next) => {
+  try {
+    const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user) 
+      return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid);
   
-  async.waterfall([
-    function(done) {
-      User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
-        if (!user) 
-          return res.status(404).send(ValidationStrings.User.Forgot.TokenInvalid);
-
-        user.password = req.body.password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-
-        user.save(function(err) {
-          req.logIn(user, function(err) {
-            done(err, user);
-          });
-        });
-      });
-    },
-    function(user, done) {
-      var smtpTransport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: config.get('gmailAccount'),
-          pass: config.get('gmailPass')
-        }
-      });
-      var mailOptions = {
-        to: user.email,
-        from: config.get('gmailAccount'),
-        subject: ValidationStrings.User.Forgot.ResetCompleteSubject,
-        text: ValidationStrings.User.Forgot.ResetCompleteBody.format(user.email)
-      };
-      smtpTransport.sendMail(mailOptions, function(err) {
-        done(err, 'done');
-      });
-    }
-  ], function(err) {
-    if (err) return next(err);
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+  
+    await user.save(function(err) {
+      if (err) 
+        return res.status(500).send('Error while attempting to reset password')
+    });
+    
+    var smtpTransport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: config.get('gmailAccount'),
+        pass: config.get('gmailPass')
+      }
+    });
+    var mailOptions = {
+      to: user.email,
+      from: config.get('gmailAccount'),
+      subject: ValidationStrings.User.Forgot.ResetCompleteSubject,
+      text: ValidationStrings.User.Forgot.ResetCompleteBody.format(user.email)
+    };
+    smtpTransport.sendMail(mailOptions);
+  
     return res.status(200).send('Reset password was successful');
-  });
+  } catch (err) {
+    return res.status(500).send('Error occured during password reset ')
+  }
 });
 
 //#endregion
