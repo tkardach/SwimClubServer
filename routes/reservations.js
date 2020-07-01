@@ -134,7 +134,7 @@ router.post('/', async (req, res) => {
   // Check if member has already made a reservation for the given date
   const eventsForDate = await calendar.getEventsForDate(date);
   const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
-  if (memberRes.length !== 0 && !sameDayRes) {
+  if (memberRes.length !== 0) {
     const data = [];
     memberRes.forEach(res => {
       let sd = new Date(res.start.dateTime);
