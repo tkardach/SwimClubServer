@@ -39,7 +39,7 @@ function validateGetReservation(res) {
   return Joi.validate(res, schema);
 }
 
-router.get('/:date', [auth], async (req, res) => {
+router.get('/:date', async (req, res) => {
   try {
     const result = await calendar.getEventsForDate(req.params.date);
     res.status(200).send(result);
