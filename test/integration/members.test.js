@@ -43,6 +43,36 @@ describe('/api/members', () => {
           certificateNumber: '3',
           primaryEmail: 'test3@test.com',
           secondaryEmail: 'test3@test3.com'
+        },
+        {
+          lastName: 'Test4',
+          certificateNumber: '4',
+          primaryEmail: 'test4@test.com',
+          secondaryEmail: 'test4@test.com'
+        },
+        {
+          lastName: 'Test5',
+          certificateNumber: '5',
+          primaryEmail: 'test5@test.com',
+          secondaryEmail: 'test5@test.com'
+        },
+        {
+          lastName: 'Test6',
+          certificateNumber: '6',
+          primaryEmail: 'test6@test.com',
+          secondaryEmail: 'test6@test.com'
+        },
+        {
+          lastName: 'Test7',
+          certificateNumber: '7',
+          primaryEmail: 'test7@test.com',
+          secondaryEmail: 'test7@test.com'
+        },
+        {
+          lastName: 'Test8',
+          certificateNumber: '8',
+          primaryEmail: 'test8@test.com',
+          secondaryEmail: 'test8@test.com'
         }
       ]
     });
@@ -58,14 +88,56 @@ describe('/api/members', () => {
         '2': {
           lastName: 'Test2',
           certificateNumber: '2',
-          type: 'PM',
+          type: 'BD',
           moneyOwed: true,
           eligibleToReserve: false
         },
         '3': {
           lastName: 'Test3',
           certificateNumber: '3',
-          type: 'PM',
+          type: 'LE',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '4': {
+          lastName: 'Test4',
+          certificateNumber: '4',
+          type: 'BE',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '5': {
+          lastName: 'Test5',
+          certificateNumber: '5',
+          type: 'CO',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '6': {
+          lastName: 'Test6',
+          certificateNumber: '6',
+          type: 'PL',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '7': {
+          lastName: 'Test7',
+          certificateNumber: '7',
+          type: 'SL',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '8': {
+          lastName: 'Test8',
+          certificateNumber: '8',
+          type: 'CL',
+          moneyOwed: false,
+          eligibleToReserve: true
+        },
+        '9': {
+          lastName: 'Test9',
+          certificateNumber: '9',
+          type: 'EL',
           moneyOwed: false,
           eligibleToReserve: true
         }
@@ -104,7 +176,7 @@ describe('/api/members', () => {
 
     it('should return all members on successful request', async () => {
       const res = await exec();
-      expect(res.body.length).toBe(3);
+      expect(res.body.length).toBe(4);
     });
 
 

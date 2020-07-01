@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const {admin, checkAdmin} = require('../middleware/admin');
+const {auth} = require('../middleware/auth');
 const {ValidationStrings} = require('../shared/strings');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -57,12 +58,13 @@ async function generateUserInformation(user) {
   }
 
   ret.events = events;
+  ret.status = 200;
 
   return ret;
 }
 
 // GET current user
-router.get('/me', async (req, res) => {
+router.get('/me', [auth] ,async (req, res) => {
   const result = await generateUserInformation(req.user);
   res.status(result.status).send(result);
 });

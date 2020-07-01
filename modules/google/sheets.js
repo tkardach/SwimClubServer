@@ -83,7 +83,7 @@ function convertMembers(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = generateMember(mem);
-        if (ACCEPTABLE_MEMBER_TYPES.find(newMem.type))
+        if (newMem.type && ACCEPTABLE_MEMBER_TYPES.indexOf(newMem.type) > -1)
             members.push(newMem);
     });
 
