@@ -1,13 +1,28 @@
 const {securityLogger} = require('../debug/logging');
+const {User} = require('../models/user');
 
-function admin(req, res, next) {
-  if (!(req.user && req.user.isAdmin)) {
+async function admin(req, res, next) {
+  const secMessage = {
+    body: req.body,
+    origin: req.headers.origin
+  }
+  if (!(req.user && req.user.isAdmin && req.user.email)) {
     securityLogger.log({
       level: 'warn',
-      message: req.body
+      message: secMessage
     });
     return res.status(403).send('Access denied.');
   }
+
+  const user = await User.findOne({email: req.user.email.toLowerCase()});
+  if (!(user && user.isAdmin)) {
+    securityLogger.log({
+      level: 'warn',
+      message: secMessage
+    });
+    return res.status(403).send('Access denied.');
+  }
+
   next();
 }
 
