@@ -3,7 +3,6 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const {auth, checkAuth} = require('../middleware/auth');
 const {admin, checkAdmin} = require('../middleware/admin');
 const {ValidationStrings} = require('../shared/strings');
 const crypto = require('crypto');
@@ -11,6 +10,7 @@ const nodemailer = require('nodemailer');
 const config = require('config');
 const sheets = require('../modules/google/sheets');
 const calendar = require('../modules/google/calendar');
+const {errorResponse} = require('../shared/utility');
 
 
 router.get('/', async (req, res) => {
@@ -46,7 +46,7 @@ async function generateUserInformation(user) {
     member.primaryEmail.toLowerCase() === user.email.toLowerCase() ||
     member.secondaryEmail.toLowerCase() === user.email.toLowerCase());
 
-  if (members.length > 1) return {message: 'More than 1 user found with this email.'}
+  if (members.length > 1) return errorResponse(400, 'More than 1 user found with this email.');
 
   const member = members[0];
   const events = await calendar.getEventsForUserId(member.certificateNumber);
@@ -63,7 +63,8 @@ async function generateUserInformation(user) {
 
 // GET current user
 router.get('/me', async (req, res) => {
-  res.status(200).send(await generateUserInformation(req.user));
+  const result = await generateUserInformation(req.user);
+  res.status(result.status).send(result);
 });
 
 //#region Login
@@ -81,12 +82,12 @@ router.post('/login', function(req, res, next) {
 
   passport.authenticate('local', function(err, user, info) {
     if (err) 
-      return res.status(400).send({message: ValidationStrings.User.InvalidCredentials});
+      return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));
     if (!user) 
-      return res.status(404).send({message: ValidationStrings.User.UserDoesNotExist});
+      return res.status(404).send(errorResponse(404, ValidationStrings.User.UserDoesNotExist));
     req.logIn(user, function(err) {
       if (err) 
-        return res.status(400).send({message: ValidationStrings.User.InvalidCredentials});
+        return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));
       return res.status(200).send('Login successful.');
     });
   })(req, res, next);
@@ -129,8 +130,6 @@ router.get('/signup/:error', function(req, res) {
   });
 });
 
-
-
 router.post('/signup', async (req, res) => {
   const { error } = validate(req.body);
   if (error) 
@@ -140,7 +139,7 @@ router.post('/signup', async (req, res) => {
 
   const findUser = await User.findOne({email: req.body.username});
   if (findUser && findUser.length !== 0) 
-    return res.status(400).send({message: ValidationStrings.User.UserAlreadyExists});
+    return res.status(400).send(errorResponse(400, ValidationStrings.User.UserAlreadyExists));
 
   const allMembers = await sheets.getAllMembers(false);
 
@@ -150,7 +149,7 @@ router.post('/signup', async (req, res) => {
     member.secondaryEmail.toLowerCase() === req.body.username.toLowerCase());
 
   if (member.length === 0) 
-    return res.status(400).send({message: ValidationStrings.User.MemberNotFound});
+    return res.status(400).send(errorResponse(400, ValidationStrings.User.MemberNotFound));
 
   var user = new User({
       email: req.body.username,
@@ -159,10 +158,10 @@ router.post('/signup', async (req, res) => {
 
   await user.save(function(err, user) {
     if (err) 
-      return res.status(400).send({message: 'Unknown error occured'});
+      return res.status(400).send(errorResponse(400, 'Unknown error occured'));
     req.logIn(user, function(err) {
       if (err) 
-        return res.status(400).send({message: 'Unknown error occured'});
+        return res.status(400).send(errorResponse(400, 'Unknown error occured'));
       return res.status(200).send('User successfully created.');
     });
   });
@@ -186,7 +185,7 @@ router.get('/forgot', function(req, res) {
 router.post('/forgot', async (req, res) => {
   try {
     if (!req.body.email) 
-      return res.status(400).send({message: 'Email is required to reset password'});
+      return res.status(400).send(errorResponse(400, 'Email is required to reset password'));
 
     var token = crypto.randomBytes(20).toString('hex');
 
@@ -198,7 +197,7 @@ router.post('/forgot', async (req, res) => {
     });
 
     if (!user) 
-      return res.status(404).send({message: 'No account with that email address exists.'});
+      return res.status(404).send(errorResponse(404, 'No account with that email address exists.'));
 
     const url = 'https://' + req.headers.host + '/api/users/reset/' + token;
 
@@ -221,7 +220,7 @@ router.post('/forgot', async (req, res) => {
   
     return res.status(200).send('Password validation has been sent');
   } catch (err) {
-    return res.status(500).send({message: `Error occured while sending email verification: ${err}`});
+    return res.status(500).send(errorResponse(400, `Error occured while sending email verification: ${err}`));
   }
 });
 
@@ -238,7 +237,7 @@ router.post('/reset/:token', async (req, res, next) => {
   try {
     const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } });
     if (!user) 
-      return res.status(404).send({message: ValidationStrings.User.Forgot.TokenInvalid});
+      return res.status(404).send(errorResponse(404, ValidationStrings.User.Forgot.TokenInvalid));
   
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
@@ -246,7 +245,7 @@ router.post('/reset/:token', async (req, res, next) => {
   
     await user.save(function(err) {
       if (err) 
-        return res.status(500).send({message: 'Error while attempting to reset password'})
+        return res.status(500).send(errorResponse(500, 'Error while attempting to reset password'))
     });
     
     var smtpTransport = nodemailer.createTransport({
@@ -266,7 +265,7 @@ router.post('/reset/:token', async (req, res, next) => {
   
     return res.status(200).send('Reset password was successful');
   } catch (err) {
-    return res.status(500).send({message: 'Error occured during password reset '})
+    return res.status(500).send(errorResponse(500, 'Error occured during password reset '))
   }
 });
 

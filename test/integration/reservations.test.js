@@ -192,7 +192,58 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('should return 400 when member has already made 3+ reservations in a week', async ()=> {
+    it('should return 400 when member has already made 3+ reservations in a week and not same day reservation', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date)},
+            end: {dateTime: new Date(payload.date)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 200 when member has already made 3 reservations in a week, but no reservations today', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -233,7 +284,7 @@ describe('/api/reservations', () => {
       })
 
       const res = await exec();
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(200);
     });
     
     it('should return 400 when member has made more than 1 reservation on given day', async ()=> {

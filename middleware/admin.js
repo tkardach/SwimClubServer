@@ -1,7 +1,7 @@
 const {securityLogger} = require('../debug/logging');
 
 function admin(req, res, next) {
-  if (!req.user.isAdmin) {
+  if (!(req.user && req.user.isAdmin)) {
     securityLogger.log({
       level: 'warn',
       message: req.body

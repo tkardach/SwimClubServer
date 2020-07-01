@@ -51,7 +51,7 @@ app.use(function(req, res, next) {
     'https://api.saratogaswimclub.com'
   ];
   var origin = req.headers.origin;
-  if (whitelist.indexOf(origin) > -1 || origin.match(reg).length > 0) {
+  if (origin && (whitelist.indexOf(origin) > -1 || origin.match(reg))) {
     res.header('Access-Control-Allow-Origin', origin);
   }
   res.header('Access-Control-Allow-Credentials', true);

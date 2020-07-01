@@ -1,5 +1,5 @@
 const {StringConstants} = require('../../shared/strings');
-const {google} = require('googleapis');
+const {google, networkmanagement_v1beta1} = require('googleapis');
 const {generateJwtClient} = require('./general');
 const {logError} = require('../../debug/logging');
 const config = require('config');
@@ -49,6 +49,13 @@ const MEMBER_TYPES = {
     NonPMLeasingPMMembership: 'LE'
 }
 
+const ACCEPTABLE_MEMBER_TYPES = [
+    MEMBER_TYPES.BoardMember,
+    MEMBER_TYPES.PermanentMember,
+    MEMBER_TYPES.BoardExtendedLease,
+    MEMBER_TYPES.NonPMLeasingPMMembership
+]
+
 function generateMember(sheetsMember) {
     return {
         lastName: sheetsMember[MEMBER_INDICES.LastName],
@@ -76,7 +83,8 @@ function convertMembers(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = generateMember(mem);
-        members.push(newMem);
+        if (ACCEPTABLE_MEMBER_TYPES.find(newMem.type))
+            members.push(newMem);
     });
 
     return members;
@@ -224,13 +232,18 @@ function generateAccount(sheetsAccount) {
     }
 }
 
+function accountAcceptable(account) {
+    return  account.lastName !== '' &&
+            isNaN(account.lastName) &&
+            !isNaN(account.certificateNumber) && 
+            account.type != MEMBER_TYPES.SoldMember;
+}
+
 function convertAccounts(sheetsAccounts) {
     const accounts = [];
     sheetsAccounts.forEach(acc => {
         const newAccount = generateAccount(acc);
-        if (newAccount.lastName !== '' &&
-        isNaN(newAccount.lastName) &&
-            !isNaN(newAccount.certificateNumber))
+        if (accountAcceptable(newAccount))
             accounts.push(newAccount);
     });
 
@@ -241,9 +254,7 @@ function convertAccountsDict(sheetsAccounts) {
     const accounts = {};
     sheetsAccounts.forEach(acc => {
         const newAccount = generateAccount(acc);
-        if (newAccount.lastName !== '' &&
-            isNaN(newAccount.lastName) &&
-            !isNaN(newAccount.certificateNumber))
+        if (accountAcceptable(newAccount))
             accounts[newAccount.certificateNumber] = newAccount;
     });
 

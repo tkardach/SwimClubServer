@@ -1,6 +1,6 @@
 const {Member, validatePostMember, validatePutMember} = require('../models/member');
-const {auth, checkAuth} = require('../middleware/auth');
 const {admin, checkAdmin} = require('../middleware/admin');
+const {auth} = require('../middleware/auth');
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
@@ -11,35 +11,30 @@ const _ = require('lodash');
 
 
 // GET from the database
-router.get('/', [checkAuth, checkAdmin], async (req, res) => {
-  let members;
-  // If request is from admin, return all information
-  if (req.isAuthenticated && req.isAdmin)
-    members = await sheets.getAllMembers(false);
-  else 
-    members = await sheets.getAllMembers(true);
+router.get('/', [admin], async (req, res) => {
+  const members = await sheets.getAllMembers(false);
 
   res.status(200).send(members);
 });
 
 // GET by id from database
-router.get('/:id', [checkAuth, checkAdmin], async (req, res) => {
+router.get('/:id', [admin], async (req, res) => {
   let members;
   // If request is from admin, return all information
-  if (req.isAuthenticated && req.isAdmin)
+  if (req.isAdmin)
     members = await sheets.getAllMembersDict(false);
   else 
     members = await sheets.getAllMembersDict(true);
 
   if (!(req.params.id in members))
-    return res.status(404).send(`Member with id ${req.params.id} not found.`);
+    return res.status(404).send(errorResponse(404, `Member with id ${req.params.id} not found.`));
 
   res.status(200).send(members[req.params.id]);
 });
 
 
 // POST to database
-router.post('/', [auth, admin], async (req, res) => {
+router.post('/', [admin], async (req, res) => {
   const { error } = validatePostMember(req.body);
   if (error) { 
     logError(error.details[0].message, error.details[0].message);
@@ -53,7 +48,7 @@ router.post('/', [auth, admin], async (req, res) => {
       {certificateNumber: req.body.certificateNumber}
     ]
     });
-  if (query.length > 0) return res.status(400).send(ValidationStrings.Member.AlreadyExists);
+  if (query.length > 0) return res.status(400).send(errorResponse(400, ValidationStrings.Member.AlreadyExists));
 
   // try to add member to database
   const content = _.pick(req.body,
@@ -79,7 +74,7 @@ router.post('/', [auth, admin], async (req, res) => {
   await member.save(function (err, member) {
     if (err) {
       logError(err, err)
-      res.status(400).send(err);
+      res.status(400).send(errorResponse(400, err));
     }
     else
       res.status(200).send(member);
@@ -88,13 +83,13 @@ router.post('/', [auth, admin], async (req, res) => {
 
 
 // PUT to database
-router.put('/:id', validateObjectId, async (req, res) => {
+router.put('/:id', [admin], async (req, res) => {
   res.status(200).send("");
 });
 
 
 // DELETE from database
-router.delete('/:id', validateObjectId, async (req, res) => {
+router.delete('/:id', [admin], async (req, res) => {
   res.status(200).send("");
 });
 
