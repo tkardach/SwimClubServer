@@ -43,11 +43,12 @@ describe('sheets', () => {
     it('should return all accounts in the form of an object', async () => {
       const res = await sheets.getAllAccountsDict();
 
-      const testCert = sheet.allAccounts[0][sheets.ACCOUNT_INDICES.CertificateNumber];
-      expect(res[testCert]).toHaveProperty('lastName');
-      expect(res[testCert]).toHaveProperty('certificateNumber');
-      expect(res[testCert]).toHaveProperty('moneyOwed');
-      expect(res[testCert]).toHaveProperty('eligibleToReserve');
+      let account = sheet.allAccounts[0];
+      const test = account[sheets.ACCOUNT_INDICES.CertificateNumber] + account[sheets.ACCOUNT_INDICES.Type];
+      expect(res[test]).toHaveProperty('lastName');
+      expect(res[test]).toHaveProperty('certificateNumber');
+      expect(res[test]).toHaveProperty('moneyOwed');
+      expect(res[test]).toHaveProperty('eligibleToReserve');
     });
   });
   
@@ -85,7 +86,8 @@ describe('sheets', () => {
     it('should return all members in the form of an object, with all member information using false flag', async () => {
       const res = await sheets.getAllMembersDict(false);
 
-      const test = sheet.allMembers[0][sheets.MEMBER_INDICES.CertificateNumber];
+      let member = sheet.allMembers[0];
+      const test = member[sheets.MEMBER_INDICES.CertificateNumber] + member[sheets.MEMBER_INDICES.Type];
       expect(res[test]).toHaveProperty('lastName');
       expect(res[test]).toHaveProperty('certificateNumber');
       expect(res[test]).toHaveProperty('primaryEmail');
@@ -95,7 +97,8 @@ describe('sheets', () => {
     it('should return all members in the form of an object, with limited member information using true flag', async () => {
       const res = await sheets.getAllMembersDict(true);
 
-      const test = sheet.allMembers[0][sheets.MEMBER_INDICES.CertificateNumber];
+      let member = sheet.allMembers[0];
+      const test = member[sheets.MEMBER_INDICES.CertificateNumber] + member[sheets.MEMBER_INDICES.Type];
       expect(res[test]).toHaveProperty('lastName');
       expect(res[test]).toHaveProperty('certificateNumber');
       expect(res[test]).not.toHaveProperty('primaryEmail');
@@ -106,14 +109,14 @@ describe('sheets', () => {
   describe('getAllPaidMembers()', () => {
     it('should return all members which have paid dues', async () => {
       const res = await sheets.getAllPaidMembers();
-      expect(res.length).toBe(2);
+      expect(res.length).toBe(8);
     });
   });
   
   describe('getAllPaidMembersDict()', () => {
     it('should return all members which have paid dues', async () => {
       const res = await sheets.getAllPaidMembersDict();
-      expect(Object.keys(res).length).toBe(2);
+      expect(Object.keys(res).length).toBe(8);
     });
   });
 });

@@ -58,6 +58,7 @@ const ACCEPTABLE_MEMBER_TYPES = [
 
 function generateMember(sheetsMember) {
     return {
+        id: sheetsMember[MEMBER_INDICES.CertificateNumber] + sheetsMember[MEMBER_INDICES.Type],
         lastName: sheetsMember[MEMBER_INDICES.LastName],
         certificateNumber: sheetsMember[MEMBER_INDICES.CertificateNumber],
         type: sheetsMember[MEMBER_INDICES.Type],
@@ -83,8 +84,8 @@ function convertMembers(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = generateMember(mem);
-        if (newMem.type && ACCEPTABLE_MEMBER_TYPES.indexOf(newMem.type) > -1)
-            members.push(newMem);
+        
+        members.push(newMem);
     });
 
     return members;
@@ -95,6 +96,7 @@ function convertMembersLite(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = {
+            id: mem[MEMBER_INDICES.CertificateNumber] + mem[MEMBER_INDICES.Type],
             lastName: mem[MEMBER_INDICES.LastName],
             certificateNumber: mem[MEMBER_INDICES.CertificateNumber],
             type: mem[MEMBER_INDICES.Type]
@@ -111,6 +113,7 @@ function convertMembersDict(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = {
+            id: mem[MEMBER_INDICES.CertificateNumber] + mem[MEMBER_INDICES.Type],
             lastName: mem[MEMBER_INDICES.LastName],
             certificateNumber: mem[MEMBER_INDICES.CertificateNumber],
             type: mem[MEMBER_INDICES.Type],
@@ -130,7 +133,7 @@ function convertMembersDict(sheetsMembers) {
             numberOfMembers: mem[MEMBER_INDICES.NumberOfMembers]
         }
 
-        members[newMem.certificateNumber] = newMem;
+        members[newMem.id] = newMem;
     });
 
     return members;
@@ -141,12 +144,13 @@ function convertMembersLiteDict(sheetsMembers) {
 
     sheetsMembers.forEach(mem => {
         const newMem = {
+            id: mem[MEMBER_INDICES.CertificateNumber] + mem[MEMBER_INDICES.Type],
             lastName: mem[MEMBER_INDICES.LastName],
             certificateNumber: mem[MEMBER_INDICES.CertificateNumber],
             type: mem[MEMBER_INDICES.Type]
         }
 
-        members[newMem.certificateNumber] = newMem;
+        members[newMem.id] = newMem;
     });
 
     return members;
@@ -176,7 +180,7 @@ async function getAllMembers(lite) {
 
     const members = lite ? convertMembersLite(sheetsMembers) : 
                             convertMembers(sheetsMembers);
-    return members.filter(member => member.certificateNumber in accountsDict);
+    return members.filter(member => member.id in accountsDict);
 }
 
 async function getAllMembersDict(lite) {
@@ -186,8 +190,8 @@ async function getAllMembersDict(lite) {
     const membersDict = lite ? convertMembersLiteDict(sheetsMembers) : 
                             convertMembersDict(sheetsMembers);
 
-    return _.pickBy(membersDict, function(member, cert) {
-        return cert in accountsDict;
+    return _.pickBy(membersDict, function(member, id) {
+        return id in accountsDict;
     });
 }
 
@@ -196,16 +200,16 @@ async function getAllPaidMembers(lite) {
     const accountsDict = await sheets.getAllAccountsDict();
 
     return members.filter(member => 
-        accountsDict[member.certificateNumber] && 
-        accountsDict[member.certificateNumber].eligibleToReserve === true);
+        accountsDict[member.id] && 
+        accountsDict[member.id].eligibleToReserve === true);
 }
 
 async function getAllPaidMembersDict(lite) {
     const membersDict = await sheets.getAllMembersDict(lite);
     const accountsDict = await sheets.getAllAccountsDict();
 
-    return _.pickBy(membersDict, function(member, cert) {
-        return accountsDict[cert] && accountsDict[cert].eligibleToReserve === true;
+    return _.pickBy(membersDict, function(member, id) {
+        return accountsDict[id] && accountsDict[id].eligibleToReserve === true;
     });
 }
 
@@ -224,6 +228,7 @@ const ACCOUNT_INDICES = {
 
 function generateAccount(sheetsAccount) {
     return {
+        id: sheetsAccount[ACCOUNT_INDICES.CertificateNumber] + sheetsAccount[ACCOUNT_INDICES.Type],
         certificateNumber: sheetsAccount[ACCOUNT_INDICES.CertificateNumber],
         lastName: sheetsAccount[ACCOUNT_INDICES.LastName],
         type: sheetsAccount[ACCOUNT_INDICES.Type],
@@ -235,8 +240,7 @@ function generateAccount(sheetsAccount) {
 function accountAcceptable(account) {
     return  account.lastName !== '' &&
             isNaN(account.lastName) &&
-            !isNaN(account.certificateNumber) && 
-            account.type != MEMBER_TYPES.SoldMember;
+            !isNaN(account.certificateNumber);
 }
 
 function convertAccounts(sheetsAccounts) {
@@ -255,7 +259,7 @@ function convertAccountsDict(sheetsAccounts) {
     sheetsAccounts.forEach(acc => {
         const newAccount = generateAccount(acc);
         if (accountAcceptable(newAccount))
-            accounts[newAccount.certificateNumber] = newAccount;
+            accounts[newAccount.id] = newAccount;
     });
 
     return accounts;
