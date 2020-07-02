@@ -20,6 +20,7 @@ function uuidv4() {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.user(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -39,7 +40,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(function(req, res, next) {
-  var reg = /https:\/\/.*-atari-embeds.googleusercontent.com/;
+  var regList = [
+    'https:\/\/.*-atari-embeds.googleusercontent.com'
+  ]
   var whitelist = [
     'http://localhost:5500',
     'http://localhost:5501',
@@ -50,8 +53,10 @@ app.use(function(req, res, next) {
     'http://api.saratogaswimclub.com',
     'https://api.saratogaswimclub.com'
   ];
+
+  let reg = new RegExp(regList.join("|"));
   var origin = req.headers.origin;
-  if (origin && (whitelist.indexOf(origin) > -1 || origin.match(reg))) {
+  if (origin && (whitelist.indexOf(origin) > -1 || reg.test(origin))) {
     res.header('Access-Control-Allow-Origin', origin);
   }
   res.header('Access-Control-Allow-Credentials', true);
