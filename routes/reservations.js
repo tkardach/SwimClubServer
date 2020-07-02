@@ -92,7 +92,7 @@ router.post('/', async (req, res) => {
     return res.status(400).send(errorResponse(400,`Multiple members with email ${req.body.memberEmail} found`));
 
   // Check if member has paid their dues
-  if (!(member[0].certificateNumber in paidMembers)) 
+  if (!(member[0].id in paidMembers)) 
     return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName)));
   
   // Check if member has already made max reservations for the week

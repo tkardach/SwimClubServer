@@ -17,8 +17,17 @@ router.get('/', [admin], async (req, res) => {
   res.status(200).send(members);
 });
 
+// GET from the database
+router.get('/paid-members', [admin], async (req, res) => {
+  const members = await sheets.getAllPaidMembers(false);
+
+  res.status(200).send(members);
+});
+
 // GET by id from database
 router.get('/:id', [admin], async (req, res) => {
+  if (req.params.id && req.params.id === 'paid-members')
+    return res.redirect('/api/members/paid-members');
   const members = await sheets.getAllMembersDict(false);
 
   if (!(req.params.id in members))
