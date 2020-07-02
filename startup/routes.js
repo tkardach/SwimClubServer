@@ -12,10 +12,12 @@ const express = require('express');
 const users = require('../routes/users');
 const home = require('../routes/home');
 const reservations = require('../routes/reservations');
+const accounts = require('../routes/accounts');
 const members = require('../routes/members');
 
 module.exports = function (app) {
   app.use('/api/reservations', reservations);
+  app.use('/api/accounts', accounts);
   app.use('/api/members', members);
   app.use('/api/users', users);
   app.use('/', home);
