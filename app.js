@@ -42,7 +42,8 @@ app.use(passport.session());
 app.use(function(req, res, next) {
   var regList = [
     'https:\/\/.*-atari-embeds.googleusercontent.com',
-    'http://localhost.*'
+    'http.*://localhost.*',
+    'http.*://127.0.0.1.*'
   ]
   var whitelist = [
     'http://localhost:5500',
