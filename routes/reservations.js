@@ -67,7 +67,7 @@ router.post('/', async (req, res) => {
   let offset = 0;
 
   let now = new Date();
-  if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() >= 5)
+  if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
     offset = 7;
 
   if (thisWeekEnd.getDay() === 6) // weeks end on Thursday 6PM, find end of week relative to date
