@@ -135,7 +135,7 @@ async function getEventsForUserId(id){
         const events = result.data.items;
         const userEvents = [];
         events.forEach(event => {
-            if (event.summary === id)
+            if (event.summary === id || event.summary === `#${id}`)
                 userEvents.push(event);
         })
         return userEvents;

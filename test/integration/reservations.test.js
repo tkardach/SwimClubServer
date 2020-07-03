@@ -60,18 +60,21 @@ describe('/api/reservations', () => {
       getMembersSpy = jest.spyOn(sheets, 'getAllMembers').mockImplementation((lite) => {
         return [
           {
+            id: '1D',
             lastName: 'Test1',
             certificateNumber: '1',
             primaryEmail: 'test1@test.com',
             secondaryEmail: 'test1@test1.com'
           },
           {
+            id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
             primaryEmail: 'test2@test.com',
             secondaryEmail: 'test2@test2.com'
           },
           {
+            id: '3D',
             lastName: 'Test3',
             certificateNumber: '3',
             primaryEmail: 'test3@test.com',
@@ -81,13 +84,15 @@ describe('/api/reservations', () => {
       });
       getPaidMembersDictSpy = jest.spyOn(sheets, 'getAllPaidMembersDict').mockImplementation((lite) => {
         return {
-          '2': {
+          '2D': {
+            id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
             primaryEmail: 'test2@test.com',
             secondaryEmail: 'test2@test2.com'
           },
-          '3': {
+          '3D': {
+            id: '3D',
             lastName: 'Test3',
             certificateNumber: '3',
             primaryEmail: 'test3@test.com',
@@ -162,24 +167,28 @@ describe('/api/reservations', () => {
       getMembersSpy = jest.spyOn(sheets, 'getAllMembers').mockImplementation((lite) => {
         return [
           {
+            id: '1D',
             lastName: 'Test1',
             certificateNumber: '1',
             primaryEmail: 'test1@test.com',
             secondaryEmail: 'test1@test1.com'
           },
           {
+            id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
             primaryEmail: 'test2@test.com',
             secondaryEmail: 'test2@test2.com'
           },
           {
+            id: '3D',
             lastName: 'Test3',
             certificateNumber: '3',
             primaryEmail: 'test3@test.com',
             secondaryEmail: 'test3@test3.com'
           },
           {
+            id: '4D',
             lastName: 'Test4',
             certificateNumber: '4',
             primaryEmail: 'test2@test.com',
@@ -197,32 +206,32 @@ describe('/api/reservations', () => {
         return [
           {
             summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           },
           {
             summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           },
           {
             summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           },
           {
             summary: '1',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           },
           {
             summary: '3',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           }
         ];
@@ -232,8 +241,47 @@ describe('/api/reservations', () => {
         return [
           {
             summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 when member has already made a reservation on this day, using #certNumber', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '4',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [
+          {
+            summary: '#2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           }
         ];
@@ -247,33 +295,21 @@ describe('/api/reservations', () => {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
-            summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
-            htmlLink: '123.com'
-          },
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
-            htmlLink: '123.com'
-          },
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
-            htmlLink: '123.com'
-          },
-          {
             summary: '1',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           },
           {
             summary: '3',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '4',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           }
         ];
@@ -286,6 +322,45 @@ describe('/api/reservations', () => {
       const res = await exec();
       expect(res.status).toBe(200);
     });
+
+    it('should return 400 when there are 4 or more reservations for a timeslot', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '4',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
+            htmlLink: '123.com'
+          },
+          {
+            summary: '5',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
+            htmlLink: '123.com'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [];
+      })
+
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
     
     it('should return 400 when member has made more than 1 reservation on given day', async ()=> {
 
@@ -293,8 +368,8 @@ describe('/api/reservations', () => {
         return [
           {
             summary: '2',
-            start: {dateTime: new Date(payload.date)},
-            end: {dateTime: new Date(payload.date)},
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
             htmlLink: '123.com'
           }
         ];

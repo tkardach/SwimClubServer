@@ -20,7 +20,7 @@ function uuidv4() {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.user(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -41,7 +41,8 @@ app.use(passport.session());
 
 app.use(function(req, res, next) {
   var regList = [
-    'https:\/\/.*-atari-embeds.googleusercontent.com'
+    'https:\/\/.*-atari-embeds.googleusercontent.com',
+    'http://localhost.*'
   ]
   var whitelist = [
     'http://localhost:5500',

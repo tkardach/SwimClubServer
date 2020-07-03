@@ -108,7 +108,7 @@ router.post('/', async (req, res) => {
     weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
 
   const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
-  const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber);
+  const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber || event.summary === `#${member[0].certificateNumber}`);
 
   let today = new Date();
   let sameDayRes = (memberResWeek.length === 3 && today.compareDate(date) === 0);
@@ -134,7 +134,7 @@ router.post('/', async (req, res) => {
 
   // Check if member has already made a reservation for the given date
   const eventsForDate = await calendar.getEventsForDate(date);
-  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber);
+  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber || event.summary === `#${member[0].certificateNumber}`);
   if (memberRes.length !== 0) {
     const data = [];
     memberRes.forEach(res => {
@@ -152,6 +152,14 @@ router.post('/', async (req, res) => {
     }
     return res.status(400).send(err);
   }
+
+  // Check if the timeslots for this day are full
+  // TODO: This code is BAD. here we are using the POSTed start and end time as a reference. In the future
+  // we should store a list of timeslots on server and client will use that
+  
+  const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
+  if (reservationsOnDay.length >= 4)
+    return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
   //#endregion
 
