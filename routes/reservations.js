@@ -64,10 +64,16 @@ router.post('/', async (req, res) => {
 
   let thisWeekEnd = new Date();
 
-  if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
+  let offset = 0;
+
+  let now = new Date();
+  if (now.getDay() === 4 && now.getHours() >= 18)
+    offset = 7;
+
+  if (thisWeekEnd.getDay() === 6) // weeks end on Thursday 6PM, find end of week relative to date
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
   else
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay());
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
 
   // Check if reservation date is greater than end of this week
   if (thisWeekEnd.compareDate(date) === -1)
