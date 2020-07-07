@@ -154,7 +154,7 @@ router.post('/signup', async (req, res) => {
     return res.status(400).send(errorResponse(400, ValidationStrings.User.MemberNotFound));
 
   var user = new User({
-      email: req.body.username,
+      email: req.body.username.trim(),
       password: req.body.password
     });
 
