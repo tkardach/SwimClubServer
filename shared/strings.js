@@ -61,8 +61,8 @@ This is a confirmation that the password for your account {0} has been successfu
     PostReservationNoSchedule: 'Reservation cannot be made as there is no scheduled time during this period.',
     PostReservationsFull: 'Reservation cannot be made, all reservation slots have been filled',
     PostDuesNotPaid: 'Member {0} has not paid their dues and cannot make a reservation. Contact the Saratoga Swim Club Board of Directors if this information is incorrect.',
-    PostMaxReservationsMadeForWeek: `Member already has {0} or more reservations for this week.`,
-    PostMaxReservationsMadeForDay: `Member has already made {0} or more reservations for {1}`
+    PostMaxReservationsMadeForWeek: `Member already has {0} or more {1} reservations for this week.`,
+    PostMaxReservationsMadeForDay: `Member has already made {0} or more {1} reservations for {1}`
   },
 }
 

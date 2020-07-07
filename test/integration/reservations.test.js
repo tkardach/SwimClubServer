@@ -5,14 +5,21 @@ const bcrypt = require('bcrypt');
 const {ValidationStrings} = require('../../shared/strings');
 const calendar = require('../../modules/google/calendar');
 const sheets = require('../../modules/google/sheets');
+const {createUser} = require('../utility');
 
 
 let server;
-let token;
+let session;
+let userPayload;
 
 describe('/api/reservations', () => {
   beforeEach(async () => {
     server = require('../../server');
+
+    const ret = await createUser(server, true);
+
+    session = ret.session;
+    userPayload = ret.payload;
   });
 
   afterEach(async () => {
@@ -42,7 +49,8 @@ describe('/api/reservations', () => {
         memberEmail: 'test2@test.com',
         date: new Date(),
         start: 800,
-        end: 930
+        end: 930,
+        type: 'family'
       }
 
       postEventToCalendarSpy = jest.spyOn(calendar, 'postEventToCalendar').mockImplementation((event) => {
@@ -113,19 +121,13 @@ describe('/api/reservations', () => {
     const exec = () => {
       return request(server)
         .post('/api/reservations')
-        .send(payload);
+        .send(payload)
+        .set('Cookie', session);
     } 
 
     it('should return 200 on successful request', async () => {
       const res = await exec();
       expect(res.status).toBe(200);
-    });
-    
-    it('should return 400 when memberEmail missing', async ()=> {
-      delete payload.memberEmail;
-
-      const res = await exec();
-      expect(res.status).toBe(400);
     });
 
     it('should return 400 when date missing', async ()=> {
@@ -208,31 +210,36 @@ describe('/api/reservations', () => {
             summary: '2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '1',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '3',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -243,7 +250,8 @@ describe('/api/reservations', () => {
             summary: '2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -259,19 +267,22 @@ describe('/api/reservations', () => {
             summary: '1',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '3',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '4',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -282,7 +293,8 @@ describe('/api/reservations', () => {
             summary: '#2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -298,19 +310,22 @@ describe('/api/reservations', () => {
             summary: '1',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '3',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '4',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -330,25 +345,29 @@ describe('/api/reservations', () => {
             summary: '1',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '3',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '4',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           },
           {
             summary: '5',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100, payload.end % 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })
@@ -370,7 +389,8 @@ describe('/api/reservations', () => {
             summary: '2',
             start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
             end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com'
+            htmlLink: '123.com',
+            description: 'family'
           }
         ];
       })

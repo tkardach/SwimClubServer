@@ -20,11 +20,13 @@ function validatePostReservation(res) {
   const schema = {
     location: Joi.string().optional(),
     description: Joi.string().optional(),
+    type: Joi.string().required(),
     date: Joi.date().required(),
     start: Joi.number().required(),
     end: Joi.number().required(),
     attendees: Joi.array().items(Joi.string()).optional(),
-    memberEmail: Joi.string().optional()
+    memberEmail: Joi.string().optional(),
+    numberSwimmers: Joi.number().optional()
   };
 
   return Joi.validate(res, schema);
@@ -49,10 +51,89 @@ router.get('/:date', async (req, res) => {
   }
 });
 
+router.get('/family/:date', async (req, res) => {
+  try {
+    const result = await calendar.getEventsForDate(req.params.date);
+    const filtered = result.filter(event => event.description === 'family');
+    res.status(200).send(filtered);
+  } catch (err) {
+    logError(err, 'Error thrown while trying to post event to calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to post event to calendar'));
+  }
+});
+
+router.get('/lap/:date', async (req, res) => {
+  try {
+    const result = await calendar.getEventsForDate(req.params.date);
+    const filtered = result.filter(event => event.description === 'lap');
+    res.status(200).send(filtered);
+  } catch (err) {
+    logError(err, 'Error thrown while trying to post event to calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to post event to calendar'));
+  }
+});
+
+async function handleFamilyReservation(date, member, type) {
+  const response = {
+    status: 200,
+    message: ''
+  }
+
+  let maxPerWeek = type === 'family' ? 3 : 4;
+  let maxPerDay = type === 'family' ? 1 : 2;
+  let familyType = type === 'family';
+
+  // Check if member has already made max reservations for the week
+  let weekStart = new Date(date);
+  weekStart.setHours(0,0,0,0);
+  let weekEnd = new Date(weekStart);
+
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 1) % 7)); // weeks start on saturday, find begininning of week relative to date
+
+  if (weekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
+    weekEnd.setDate(weekEnd.getDate() + 6);
+  else
+    weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
+
+  // Query all events in week for current member
+  const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
+  const memberResWeek = eventsForWeek.filter(event => 
+    (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
+    event.description === type);
+
+  let today = new Date();
+  let sameDayRes = memberResWeek.length === 3 && today.compareDate(date) === 0 && familyType;
+  if (memberResWeek.length >= maxPerWeek && !sameDayRes) {
+    let sameDayUsed = today.compareDate(date) === 0 && familyType ? ' And you have already used your same-day reservation for today.' : '';
+    response.status = 400;
+    response.message = ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format(maxPerWeek, type) + sameDayUsed;
+    return response;
+  }
+
+  // Check if member has already made a reservation for the given date
+  const eventsForDate = await calendar.getEventsForDate(date);
+  const memberRes = eventsForDate.filter(event => 
+    (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
+    event.description === type);
+
+  
+  if (memberRes.length !== 0) {
+    response.status = 400;
+    response.message = ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format(maxPerDay, type, date.toLocaleDateString());
+    return response;
+  }
+
+  response.status = 200;
+  return response;
+}
+
 router.post('/', async (req, res) => {
   // Make sure required parameters are included in request body
   const { error } = validatePostReservation(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) return res.status(400).send(errorResponse(400, error.details[0].message));
+
+  if (req.body.type === 'lap' && req.body.numberSwimmers === 0)
+    return res.status(400).send(errorResponse(400, 'You must specify the number of swimmers for lap reservations'));
 
   // Check if memberEmail was supplied. If not, check for session
   if (!req.body.memberEmail && !req.user)
@@ -88,19 +169,26 @@ router.post('/', async (req, res) => {
   const paidMembers = await sheets.getAllPaidMembersDict(true);
 
   // Check if member making reservation exists
-  const member = allMembers.filter(member => 
+  const members = allMembers.filter(member => 
     member.primaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase() ||
     member.secondaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase());
 
-  if (member.length === 0) // Member does not exist
+  if (members.length === 0) // Member does not exist
     return res.status(404).send(errorResponse(404,`Member with email ${req.body.memberEmail} not found.`));
-  if (member.length > 1) // Somehow there are multiple members with this email
+  if (members.length > 1) // Somehow there are multiple members with this email
     return res.status(400).send(errorResponse(400,`Multiple members with email ${req.body.memberEmail} found`));
 
+  const member = members[0];
   // Check if member has paid their dues
-  if (!(member[0].id in paidMembers)) 
-    return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostDuesNotPaid.format(member[0].lastName)));
+  if (!(member.id in paidMembers)) 
+    return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostDuesNotPaid.format(member.lastName)));
   
+  const maxPerWeek = req.body.type === 'family' ? 3 : 4;
+  const maxPerDay = req.body.type === 'family' ? 1 : 2;
+  const familyType = req.body.type === 'family';
+  const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;
+  const maxResPerSlot = req.body.type === 'family' ? 4 : 2;
+
   // Check if member has already made max reservations for the week
   let weekStart = new Date(date);
   weekStart.setHours(0,0,0,0);
@@ -113,69 +201,52 @@ router.post('/', async (req, res) => {
   else
     weekEnd.setDate(weekEnd.getDate() + 5 - weekEnd.getDay());
 
+  // Query all events in week for current member
   const eventsForWeek = await calendar.getEventsForDateAndTime(weekStart, weekEnd, 0, 2359);
-  const memberResWeek = eventsForWeek.filter(event => event.summary === member[0].certificateNumber || event.summary === `#${member[0].certificateNumber}`);
+  const memberResWeek = eventsForWeek.filter(event => 
+    (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
+    event.description === req.body.type);
 
   let today = new Date();
-  let sameDayRes = (memberResWeek.length === 3 && today.compareDate(date) === 0);
-  if (memberResWeek.length >= 3 && !sameDayRes) {
-    const data = [];
-    memberResWeek.forEach(res => {
-      let sd = new Date(res.start.dateTime);
-      let ed = new Date(res.end.dateTime);
-      data.push({
-        htmlLink: res.htmlLink,
-        start: sd,
-        end: ed
-      });
-    })
-    let sameDayUsed = today.compareDate(date) === 0 ? ' And you have already used your same-day reservation for today.' : '';
-    let message = ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format('three') + sameDayUsed;
-    const err = {
-      message: message,
-      data: data
-    }
-    return res.status(400).send(err);
+  let sameDayRes = memberResWeek.length === maxPerWeek && today.compareDate(date) === 0 && familyType;
+  if (memberResWeek.length >= maxPerWeek && !sameDayRes) {
+    let sameDayUsed = today.compareDate(date) === 0 && familyType ? ' And you have already used your same-day reservation for today.' : '';
+    return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format(maxPerWeek, req.body.type) + sameDayUsed));
   }
+
+  // If lap swimmer, and the extra reservation exceeds limit, send informative response
+  if (memberResWeek.length + extraRes >= maxPerWeek && !familyType) 
+    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, you have exceeded your lap reservations for the week.`))
 
   // Check if member has already made a reservation for the given date
   const eventsForDate = await calendar.getEventsForDate(date);
-  const memberRes = eventsForDate.filter(event => event.summary === member[0].certificateNumber || event.summary === `#${member[0].certificateNumber}`);
-  if (memberRes.length !== 0) {
-    const data = [];
-    memberRes.forEach(res => {
-      let sd = new Date(res.start.dateTime);
-      let ed = new Date(res.end.dateTime);
-      data.push({
-        htmlLink: res.htmlLink,
-        start: sd,
-        end: ed
-      });
-    })
-    const err = {
-      message: ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format('one', date.toLocaleDateString()),
-      data: data
-    }
-    return res.status(400).send(err);
-  }
+  const memberRes = eventsForDate.filter(event => 
+    (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
+    event.description === req.body.type);
+
+  if (memberRes.length >= maxPerDay)
+    return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostMaxReservationsMadeForDay.format(maxPerDay, req.body.type, date.toLocaleDateString())));
+
+  // If lap swimmer, and the extra reservation exceeds limit, send informative response
+  if (memberRes.length + extraRes >= maxPerDay && !familyType)
+    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, you have exceeded your lap reservations for this date.`))
 
   // Check if the timeslots for this day are full
   // TODO: This code is BAD. here we are using the POSTed start and end time as a reference. In the future
   // we should store a list of timeslots on server and client will use that
-  
   const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
-  if (reservationsOnDay.length >= 4)
+  if (reservationsOnDay.length >= maxResPerSlot)
     return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
   //#endregion
 
   // Create event and post it to the calendar
-  const attendees = [req.body.memberEmail]
+  const attendees = [req.user.email]
 
   const event = calendar.generateEvent(
-    member[0].certificateNumber,
+    member.certificateNumber,
     req.body.location,
-    req.body.description,
+    req.body.type,
     date,
     date,
     req.body.start,
@@ -188,7 +259,7 @@ router.post('/', async (req, res) => {
 
     if (!result)
       return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
-    event.lastName = member[0].lastName;
+    event.lastName = member.lastName;
     res.status(200).send(event);
   } catch (err) {
     logError(err, 'Error thrown while trying to post event to calendar');
