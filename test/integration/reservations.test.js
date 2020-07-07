@@ -16,7 +16,7 @@ describe('/api/reservations', () => {
   beforeEach(async () => {
     server = require('../../server');
 
-    const ret = await createUser(server, true);
+    const ret = await createUser(server, true, 'test2@test.com');
 
     session = ret.session;
     userPayload = ret.payload;
@@ -46,7 +46,7 @@ describe('/api/reservations', () => {
 
     beforeEach(async () => {
       payload = {
-        memberEmail: 'test2@test.com',
+        memberEmail: userPayload.email,
         date: new Date(),
         start: 800,
         end: 930,
@@ -78,7 +78,7 @@ describe('/api/reservations', () => {
             id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
-            primaryEmail: 'test2@test.com',
+            primaryEmail: userPayload.email,
             secondaryEmail: 'test2@test2.com'
           },
           {
@@ -96,7 +96,7 @@ describe('/api/reservations', () => {
             id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
-            primaryEmail: 'test2@test.com',
+            primaryEmail: userPayload.email,
             secondaryEmail: 'test2@test2.com'
           },
           '3D': {
@@ -179,7 +179,7 @@ describe('/api/reservations', () => {
             id: '2D',
             lastName: 'Test2',
             certificateNumber: '2',
-            primaryEmail: 'test2@test.com',
+            primaryEmail: userPayload.email,
             secondaryEmail: 'test2@test2.com'
           },
           {
@@ -193,7 +193,7 @@ describe('/api/reservations', () => {
             id: '4D',
             lastName: 'Test4',
             certificateNumber: '4',
-            primaryEmail: 'test2@test.com',
+            primaryEmail: userPayload.email,
             secondaryEmail: 'test2@test2.com'
           }
         ]
@@ -203,64 +203,7 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('should return 400 when member has already made 3+ reservations in a week and not same day reservation', async ()=> {
-      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
-        return [
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          },
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          },
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          },
-          {
-            summary: '1',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          },
-          {
-            summary: '3',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          }
-        ];
-      })
-
-      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
-        return [
-          {
-            summary: '2',
-            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
-            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
-            htmlLink: '123.com',
-            description: 'family'
-          }
-        ];
-      })
-
-      const res = await exec();
-      expect(res.status).toBe(400);
-    });
-    
-    it('should return 400 when member has already made a reservation on this day, using #certNumber', async ()=> {
+    it('FAMILY: should return 400 when member has already made a reservation on this day, using #certNumber', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -303,7 +246,7 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('should return 200 when member has already made 3 reservations in a week, but no reservations today', async ()=> {
+    it('FAMILY: should return 200 when member has already made 3 reservations in a week, but no reservations today', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -338,7 +281,7 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(200);
     });
 
-    it('should return 400 when there are 4 or more reservations for a timeslot', async ()=> {
+    it('FAMILY: should return 400 when there are 4 or more reservations for a timeslot', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -381,7 +324,7 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('should return 400 when member has made more than 1 reservation on given day', async ()=> {
+    it('FAMILY: should return 400 when member has made more than 1 reservation on given day', async ()=> {
 
       getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
         return [
@@ -395,6 +338,215 @@ describe('/api/reservations', () => {
         ];
       })
 
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('FAMILY: should return 400 when member has already made 3+ reservations in a week and not same day reservation', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          },
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          }
+        ];
+      })
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('LAP: should return 200 when member tries to make a second lap reservation for the day', async ()=> {
+      let newDate = new Date(payload.date);
+      newDate.setDate(newDate.getDate() + 1);
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          }];
+      })
+
+      payload.type = 'lap';
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it('LAP: should return 400 when member has already made 4+ reservations in a week', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '1',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          },
+          {
+            summary: '3',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'family'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [];
+      })
+
+      payload.type = 'lap';
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('LAP: should return 400 when member has already made 2+ reservations in a day ', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [{
+          summary: '2',
+          start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+          end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+          htmlLink: '123.com',
+          description: 'lap'
+        },
+        {
+          summary: '2',
+          start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+          end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+          htmlLink: '123.com',
+          description: 'lap'
+        }];
+      })
+
+      payload.type = 'lap';
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('LAP: should return 400 when there are 2 or more reservations for a given timeslot', async ()=> {
+      getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
+        return [
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          },
+          {
+            summary: '2',
+            start: {dateTime: new Date(payload.date).setHours(payload.start / 100)},
+            end: {dateTime: new Date(payload.date).setHours(payload.end / 100)},
+            htmlLink: '123.com',
+            description: 'lap'
+          }
+        ];
+      })
+
+      getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
+        return [];
+      })
+
+      payload.type = 'lap';
       const res = await exec();
       expect(res.status).toBe(400);
     });

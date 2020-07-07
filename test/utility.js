@@ -1,7 +1,7 @@
 const {User} = require('../models/user');
 const request = require('supertest');
 
-async function createUser(server, admin) {
+async function createUser(server, admin, email='') {
   let session;
 
   const payload = {
@@ -9,6 +9,9 @@ async function createUser(server, admin) {
     email: 'test@tester.com',
     password: 'test'
   };
+
+  if (email !== '') 
+    payload.email = email;
 
   const user = new User(payload);
 

@@ -255,10 +255,16 @@ router.post('/', async (req, res) => {
   );
 
   try {
-    const result = await calendar.postEventToCalendar(event);
+    let savedEvents = [];
+    let result;
+    for (let i=0; i<=extraRes; i++) {
+      result = await calendar.postEventToCalendar(event);
 
-    if (!result)
-      return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
+      if (!result)
+        return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
+      savedEvents.push(result);
+    }
+
     event.lastName = member.lastName;
     res.status(200).send(event);
   } catch (err) {
