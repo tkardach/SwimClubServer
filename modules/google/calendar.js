@@ -1,7 +1,7 @@
 require('../../shared/extensions');
 const { StringConstants} = require('../../shared/strings');
 const config = require('config');
-const {google} = require('googleapis');
+const {google, GoogleApis} = require('googleapis');
 const calendar = google.calendar('v3');
 const {generateJwtClient} = require('./general');
 const {logError} = require('../../debug/logging');
@@ -172,6 +172,44 @@ async function postEventToCalendar(event) {
     }
 }
 
+/**
+ * Creates multiple events on the calendar
+ * @param {event} event : event object to be posted to calendar 
+ */
+async function postEventsToCalendar(events) {
+    let jwtClient = await generateJwtClient(SCOPES);
+
+    if (jwtClient === null) 
+        throw "Failed to generate jwt client";
+
+    const succeeded = [];
+    try {
+        for (let i=0; i<events.length; i++) {
+            let res = await calendar.events.insert({
+                auth: jwtClient,
+                calendarId: config.get('calendarId'),
+                resource: events[i]
+            });
+
+            succeeded.push(res);
+        }
+    
+        return succeeded;
+    } catch (err) {
+        logError(err, `Failed to post event to calendar:\nEvent: ${event}`);
+
+        for (let i=0; i<succeeded.length; i++) {
+            await calendar.events.delete({
+                auth: jwtClient,
+                calendarId: config.get('calendarId'),
+                eventId: succeeded[i].id
+            });
+        }
+
+        return null;
+    }
+}
+
 
 /**
  * Returns an event object used for creating calendar events
@@ -245,5 +283,6 @@ module.exports = {
     getEventsForDateTime,
     getEventsForDateAndTime,
     getEventsForUserId,
-    deleteEventById
+    deleteEventById,
+    postEventsToCalendar
 }

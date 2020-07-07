@@ -216,7 +216,7 @@ router.post('/', async (req, res) => {
 
   // If lap swimmer, and the extra reservation exceeds limit, send informative response
   if (memberResWeek.length + extraRes >= maxPerWeek && !familyType) 
-    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, you have exceeded your lap reservations for the week.`))
+    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, this would exceed your lap reservation limit for the week.`))
 
   // Check if member has already made a reservation for the given date
   const eventsForDate = await calendar.getEventsForDate(date);
@@ -229,7 +229,7 @@ router.post('/', async (req, res) => {
 
   // If lap swimmer, and the extra reservation exceeds limit, send informative response
   if (memberRes.length + extraRes >= maxPerDay && !familyType)
-    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, you have exceeded your lap reservations for this date.`))
+    return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, this would exceed your lap reservation limit for the day.`))
 
   // Check if the timeslots for this day are full
   // TODO: This code is BAD. here we are using the POSTed start and end time as a reference. In the future
@@ -255,6 +255,7 @@ router.post('/', async (req, res) => {
   );
 
   try {
+<<<<<<< Updated upstream
     let savedEvents = [];
     let result;
     for (let i=0; i<=extraRes; i++) {
@@ -264,6 +265,20 @@ router.post('/', async (req, res) => {
         return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
       savedEvents.push(result);
     }
+=======
+    let result;
+    if (extraRes > 0) {
+      const events = [];
+      for (let i=0; i<=extraRes; i++) events.push(event);
+
+      result = await calendar.postEventsToCalendar(events);
+    }
+    else 
+      result = await calendar.postEventToCalendar(event);
+    
+    if (!result)
+      return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
+>>>>>>> Stashed changes
 
     event.lastName = member.lastName;
     res.status(200).send(event);

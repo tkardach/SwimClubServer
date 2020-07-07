@@ -49,13 +49,23 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 function logError(err, desc) {
-  logger.log({
-    level: 'error',
-    message: {
-      description: desc,
-      error: err
-    }
-  })
+  if (err instanceof Error) {
+    logger.log({
+      level: 'error',
+      message: {
+        description: desc,
+        error: `${err.stack || err}`
+      }
+    })
+  } else {
+    logger.log({
+      level: 'error',
+      message: {
+        description: desc,
+        error: err
+      }
+    })
+  }
 }
 
 function logInfo(message) {
