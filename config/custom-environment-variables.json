@@ -7,5 +7,6 @@
   "sheetAPIKey": "googleSheetAPIKey",
   "sessionSecret": "sessionKeySecret",
   "gmailAccount": "swimClubEmail",
-  "gmailPass": "swimClubPass"
+  "gmailPass": "swimClubPass",
+  "port": "serverPort"
 }
