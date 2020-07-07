@@ -255,17 +255,6 @@ router.post('/', async (req, res) => {
   );
 
   try {
-<<<<<<< Updated upstream
-    let savedEvents = [];
-    let result;
-    for (let i=0; i<=extraRes; i++) {
-      result = await calendar.postEventToCalendar(event);
-
-      if (!result)
-        return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
-      savedEvents.push(result);
-    }
-=======
     let result;
     if (extraRes > 0) {
       const events = [];
@@ -278,7 +267,6 @@ router.post('/', async (req, res) => {
     
     if (!result)
       return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
->>>>>>> Stashed changes
 
     event.lastName = member.lastName;
     res.status(200).send(event);
