@@ -33,7 +33,7 @@ app.use(session({
   resave: false,
   cookie: {
     maxAge: 36000000,
-    httpOnly: false
+    httpOnly: true
   }
 }));
 app.use(passport.initialize());
@@ -41,7 +41,7 @@ app.use(passport.session());
 
 app.use(function(req, res, next) {
   var regList = [
-    'https:\/\/.*-atari-embeds.googleusercontent.com',
+    'https:\/\/.*-embeds.googleusercontent.com',
     'http.*://localhost.*',
     'http.*://127.0.0.1.*'
   ]
