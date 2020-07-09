@@ -42,6 +42,9 @@
         font-size: 20px;
       }
 
+      p red {
+        color: rgb(243, 6, 6);
+      }
       #reservation-selection {
         display: inline-block;
         margin: 0 auto;
@@ -87,9 +90,7 @@
 
       .timeslot {
         width: 100%;
-        background-color: #00AFF3;
         border: none;
-        color: white;
         padding: 15px 32px;
         text-align: center;
         text-decoration: none;
@@ -98,9 +99,24 @@
         font-size: 16px;
       }
 
-      .timeslot:hover:not([disabled]) {
+      .family .timeslot {
+        background-color: #00AFF3;
+        color: white;
+      }
+      
+      .lap .timeslot {
+        background-color: #FF9300;
+        color: white;
+      }
+
+      .family .timeslot:hover:not([disabled]) {
         background-color: white;
         color: #00AFF3;
+      }
+
+      .lap .timeslot:hover:not([disabled]) {
+        background-color: white;
+        color: #FF9300;
       }
 
       .timeslot:disabled {
@@ -187,19 +203,89 @@
       #event a {
         display: inline-block
       }
+      a.lap {
+        color: #FF9300;
+      }
+
+      a.lap:hover,
+      a.lap:focus {
+        color: #b96c00;
+      }
+      
+      a.lap:active {
+        color: #ffc573;
+      }
+      .switch-field {
+          display: flex;
+          overflow: hidden;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+      }
+
+      .switch-field input {
+          position: absolute !important;
+          clip: rect(0, 0, 0, 0);
+          height: 1px;
+          width: 1px;
+          border: 0;
+          overflow: hidden;
+      }
+
+      .switch-field label {
+          background-color: #e4e4e4;
+          color: rgba(0, 0, 0, 0.6);
+          font-size: 14px;
+          line-height: 1;
+          text-align: center;
+          padding: 8px 16px;
+          margin-right: -1px;
+          border: 1px solid rgba(0, 0, 0, 0.2);
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+          transition: all 0.1s ease-in-out;
+      }
+
+      .switch-field label:hover {
+          cursor: pointer;
+      }
+
+      .switch-field input:checked + label {
+          box-shadow: none;
+      }
+
+      .switch-field .family:checked + label {
+        background-color: #00AFF3;
+        color: white;
+      }
+
+      .switch-field .lap:checked + label {
+        background-color: #FF9300;
+        color: white;
+      }
+
+
+      .switch-field label:first-of-type {
+          border-radius: 4px 0 0 4px;
+      }
+
+      .switch-field label:last-of-type {
+          border-radius: 0 4px 4px 0;
+      }
     </style>
     <script>
       // Constants
       const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const API_URL = "https://api.saratogaswimclub.com/api/";
+      const API_URL = "https://api.saratogaswimclub.com/dev/api/";
       const CALENDAR_API = API_URL + "reservations/";
+      const FAMILY_RESERVATIONS_API = CALENDAR_API + "family/";
+      const LAP_RESERVATIONS_API = CALENDAR_API + "lap/";
       const USER_API = API_URL + "users/";
 
       // Variables
       var sessionExists;
-      var selectedDate;
+      var selectedDate = null;
       var startTime, endTime;
-      var openTimeslotAfterLogin = false;
+      var reservationType;
 
       // Request Methods
 
@@ -208,10 +294,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -232,10 +317,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -257,10 +341,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -284,10 +367,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -310,10 +392,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -331,17 +412,19 @@
         }
       }
 
-      function getReservationForDateTimeRange(date, callback) {
+      function getReservationForDateTimeRange(date, resType, callback) {
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
-            callback(false, "<strong>Connection to server refused, please use 3DCart reservation system</strong><br>" +
-            "<a href=\"https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html\">Click Here</a>"
+            callback(false, 
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
 
-        xhr.open("GET", CALENDAR_API + date, true);
+        xhr.open("GET", CALENDAR_API + resType + '/' + date, true);
         xhr.onload = function() {
           if (this.status !== 200)
             return callback(false, JSON.parse(this.responseText));
@@ -358,17 +441,27 @@
           url: USER_API + 'session', 
           xhrFields: {
             withCredentials: true
-          }}, (res) => {
-          if (res.sessionExists) {
-            sessionExists = true;
-            document.getElementById("userLoggedIn").style.display = "block";
-            document.getElementById("userLoggedOut").style.display = "none";
-          }
-          else {
-            sessionExists = false;
-            document.getElementById("userLoggedIn").style.display = "none";
-            document.getElementById("userLoggedOut").style.display = "block";
-          }
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (XMLHttpRequest.readyState === 0) {
+              document.getElementById("errorMessage").innerHTML = 
+                `
+                Connection to server refused, please email the board board@saratogaswim.com
+                `;
+            }
+          }}, 
+          (res) => {
+            document.getElementById("errorMessage").innerHTML = "";
+            if (res.sessionExists) {
+              sessionExists = true;
+              document.getElementById("userLoggedIn").style.display = "block";
+              document.getElementById("userLoggedOut").style.display = "none";
+            }
+            else {
+              sessionExists = false;
+              document.getElementById("userLoggedIn").style.display = "none";
+              document.getElementById("userLoggedOut").style.display = "block";
+            }
         })
       }
 
@@ -379,10 +472,9 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 0) {
             callback(false, 
-            ```
-            Connection to server refused, please use 3DCart reservation system:
-            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
-            ```
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
             );
           }
         };
@@ -396,6 +488,11 @@
             return callback(false, `Status ${this.status} received:\nReason: ${this.responseText}`);
           callback(true, this.responseText);
         }
+      }
+
+      function reservationTypeChanged(radio) {
+        if (selectedDate !== null)
+          showTimeSlots(selectedDate);
       }
 
       // Utility Methods
@@ -421,6 +518,24 @@
 
       function showAllTimeslots() {
         document.getElementById("timeslots").style.display = "block";
+
+        let resType = $("input:radio[name=reservationType]:checked").val();
+        document.getElementById("timeslots").className =  resType;
+
+        if (resType === 'family') {
+          document.getElementById("11to1230").innerHTML= "11:00 am to 12:30 pm";
+          document.getElementById("1to230").innerHTML = "1:00 pm to 2:30 pm";
+          document.getElementById("3to430").innerHTML = "3:00 pm to 4:30 pm";
+          document.getElementById("5to630").innerHTML = "5:00 pm to 6:30 pm";
+          document.getElementById("7to830").style.display = "block";
+          document.getElementById("7to830").innerHTML = "7:00 pm to 8:30 pm";
+        } else {
+          document.getElementById("11to1230").innerHTML= "12:30 pm to 1:00 pm";
+          document.getElementById("1to230").innerHTML = "2:30 pm to 3:00 pm";
+          document.getElementById("3to430").innerHTML = "4:30 pm to 5:00 pm";
+          document.getElementById("5to630").innerHTML = "6:30 pm to 7:00 pm";
+          document.getElementById("7to830").style.display = "none";
+        }
       }
 
       function showTimeSlots(date) {
@@ -439,21 +554,13 @@
         // Do not allow timeslots after this week        
         let thisWeekEnd = new Date();
 
-        let offset = 0;
-
-        let now = new Date();
-        if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
-          offset = 7;
-
         if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
-          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
         else
-          thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
-
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay());
 
         if (thisWeekEnd - selected < 0)
-          return document.getElementById("reservationMessage").innerHTML = "You may start making reservations for the following week starting on Thursdays a 6PM.";
-
+          return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
 
         showAllTimeslots();
 
@@ -464,7 +571,7 @@
 
         const callback = (status, data) => {
           if (!status) {
-            document.getElementById("errorMessage").innerHTML = data.message;
+            document.getElementById("errorMessage").innerHTML = data;
             return;
           }
 
@@ -478,54 +585,45 @@
             data[i].end.dateTime = new Date(data[i].end.dateTime)
           }
 
-            let ts1 = data.filter(slot => 
-              slot.start.dateTime.getHours() === 11 && 
-              slot.start.dateTime.getMinutes() === 0 &&
-              slot.end.dateTime.getHours() >= 12 &&
-              slot.end.dateTime.getHours() <= 13
-            );
- 
+          let ts1 = data.filter(slot => 
+            slot.start.dateTime.getHours() >= 11 && 
+            slot.end.dateTime.getHours() <= 13
+          );
+
+          let ts2 = data.filter(slot => 
+            slot.start.dateTime.getHours() >= 13 && 
+            slot.end.dateTime.getHours() <= 15
+          );
+
+          let ts3 = data.filter(slot => 
+            slot.start.dateTime.getHours() >= 15 && 
+            slot.end.dateTime.getHours() <= 17
+          );
+
+          let ts4 = data.filter(slot => 
+            slot.start.dateTime.getHours() >= 17 && 
+            slot.end.dateTime.getHours() <= 19
+          );
+
+          let ts5 = data.filter(slot => 
+            slot.start.dateTime.getHours() >= 19 && 
+            slot.end.dateTime.getHours() <= 21
+          );
+          
+          let resType = $("input:radio[name=reservationType]:checked").val();
+          let maxRes = resType === 'family' ? 4 : 2;
+
+          $("#11to1230").prop("disabled", ts1.length >= maxRes);
+
+          $("#1to230").prop("disabled", ts2.length >= maxRes);
             
-            let ts2 = data.filter(slot => 
-              slot.start.dateTime.getHours() === 13 && 
-              slot.start.dateTime.getMinutes() === 0 &&
-              slot.end.dateTime.getHours() >= 14 &&
-              slot.end.dateTime.getHours() <= 15
-            );
- 
-            let ts3 = data.filter(slot => 
-              slot.start.dateTime.getHours() === 15 && 
-              slot.start.dateTime.getMinutes() === 0 &&
-              slot.end.dateTime.getHours() >= 16 &&
-              slot.end.dateTime.getHours() <= 17
-            );
- 
-            let ts4 = data.filter(slot => 
-              slot.start.dateTime.getHours() === 17 && 
-              slot.start.dateTime.getMinutes() === 0 &&
-              slot.end.dateTime.getHours() >= 18 &&
-              slot.end.dateTime.getHours() <= 19
-            );
- 
-            let ts5 = data.filter(slot => 
-              slot.start.dateTime.getHours() === 19 && 
-              slot.start.dateTime.getMinutes() === 0 &&
-              slot.end.dateTime.getHours() >= 20 &&
-              slot.end.dateTime.getHours() <= 21
-            );
+          $("#3to430").prop("disabled", ts3.length >= maxRes);
 
-          // Debug randomly disable timeslots simulating full slots
-          $("#11to1230").prop("disabled", ts1.length >= 4);
+          $("#5to630").prop("disabled", ts4.length >= maxRes);
 
-          $("#1to230").prop("disabled", ts2.length >= 4);
-            
-          $("#3to430").prop("disabled", ts3.length >= 4);
-
-          $("#5to630").prop("disabled", ts4.length >= 4);
-
-          $("#7to830").prop("disabled", ts5.length >= 4);
+          $("#7to830").prop("disabled", ts5.length >= maxRes);
         }
-        getReservationForDateTimeRange(selected.toISOString(), callback);
+        getReservationForDateTimeRange(selected.toISOString(), $("input:radio[name=reservationType]:checked").val(), callback);
       }
 
       $(function() {
@@ -554,26 +652,34 @@
     </div>
     <div class="reservation-div">
       <h1>Make a reservation!</h1> 
+      <br>
       <p id="errorMessage"></p>
+      <p>Please select a reservation type:</p>
+      <form name="reservationTypeForm" class="switch-field">
+        <input class="family" type="radio" id="family" name="reservationType" value="family" onclick="reservationTypeChanged(this)" checked>
+        <label for="family" class="large-font">Family Swimming</label>
+        <input class="lap" type="radio" id="lap" name="reservationType" value="lap" onclick="reservationTypeChanged(this)">
+        <label for="lap" class="large-font">Lap Swimming</label>
+      </form>
       <input type="text" id="datep" />
       <div id="reservation-selection">
         <div id="datepicker">
         </div>
         <div id="timeslots" style="visibility: hidden;">
           <div>
-            <button class="timeslot" id="11to1230" onclick="timeslotClicked('11:00 am - 12:30 pm', 1100, 1230)">11:00 am - 12:30 pm</button>
+            <button class="timeslot" id="11to1230" onclick="timeslotClicked(this)"></button>
           </div>
           <div>
-            <button class="timeslot" id="1to230" onclick="timeslotClicked('1:00 pm - 2:30 pm', 1300, 1430)">1:00 pm - 2:30 pm</button>
+            <button class="timeslot" id="1to230" onclick="timeslotClicked(this)">1:00 pm - 2:30 pm</button>
           </div>
           <div>
-            <button class="timeslot" id="3to430" onclick="timeslotClicked('3:00 pm - 4:30 pm', 1500, 1630)">3:00 pm - 4:30 pm</button>
+            <button class="timeslot" id="3to430" onclick="timeslotClicked(this)">3:00 pm - 4:30 pm</button>
           </div>
           <div>
-            <button class="timeslot" id="5to630" onclick="timeslotClicked('5:00 pm - 6:30 pm', 1700, 1830)">5:00 pm - 6:30 pm</button>
+            <button class="timeslot" id="5to630" onclick="timeslotClicked(this)">5:00 pm - 6:30 pm</button>
           </div>
           <div>
-            <button class="timeslot" id="7to830" onclick="timeslotClicked('7:00 pm - 8:30 pm', 1900, 2030)">7:00 pm - 8:30 pm</button>
+            <button class="timeslot" id="7to830" onclick="timeslotClicked(this)">7:00 pm - 8:30 pm</button>
           </div>
         </div>
       </div>
@@ -590,7 +696,12 @@
         <form>
           <h2>Please confirm your reservation</h2>
           <label class="medium-font" for="resSummary">Reservation:</label>
-          <label class="medium-font" id="resSummary"></label><br><br>
+          <label class="medium-font" id="resSummary"></label><br>
+          <select class="medium-font" id="resSelect">
+            <option value="0" selected>Number of Swimmers</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select><br><br>
           <input class="medium-font" type="button" value="Confirm" onclick="postEvent()">
           <p id="resResults"></p>
           <span class="fake-link" id="resManageEventsButton" onclick="openManageEventsModal()">Manage Events</span>
@@ -783,6 +894,7 @@
           var today = new Date();
 
           var div = document.getElementById("manageEventsBody");
+          div.innerHTML = "";
           var eventTable = document.createElement('table');
           eventTable.className = "event";
           eventTable.style.margin = "auto";
@@ -802,7 +914,10 @@
             var link = document.createElement('a');
             link.href = event.htmlLink;
             link.innerHTML = string;
-            link.className = "medium-font";
+
+            let linkClass;
+            
+            link.className = "medium-font " + event.description;
             column1.appendChild(link);
             row.appendChild(column1);
 
@@ -832,11 +947,6 @@
       }
  
 
-      function closeLogin() {
-        loginModal.style.display = 'none';
-        openTimeslotAfterLogin = false;
-      }
-
       // Close buttons
       resSpan.onclick = function() { 
         resModal.style.display = 'none';
@@ -845,7 +955,7 @@
         resConfirmModal.style.display = 'none';
       }
       loginSpan.onclick = function() { 
-        closeLogin();
+        loginModal.style.display = 'none';
       }
       accSpan.onclick = function() { 
         createAccountModal.style.display = 'none';
@@ -866,7 +976,7 @@
           resConfirmModal.style.display = "none";
         }
         if (event.target == loginModal)  {
-          closeLogin();
+          loginModal.style.display = "none";
         }
         if (event.target == forgotPasswordModal)  {
           forgotPasswordModal.style.display = "none";
@@ -880,23 +990,65 @@
       }
 
       // HTML actions
-      function timeslotClicked(data, start, end) {
-        document.getElementById("resSummary").innerHTML = `${WEEKDAYS[selectedDate.getDay()]} ${selectedDate.toLocaleDateString()} from ${data}`;
+      function timeslotClicked(data) {
+        let resType = $("input:radio[name=reservationType]:checked").val();
+        let family = resType === 'family';
+        if (family)
+          document.getElementById("resSelect").style.display = "none";
+        else
+          document.getElementById("resSelect").style.display = "block";
+          
+        document.getElementById("resSummary").innerHTML = `${WEEKDAYS[selectedDate.getDay()]} ${selectedDate.toLocaleDateString()} from ${data.innerHTML}`;
+
+        let start = null, end = null;
+
+        switch (data.id) {
+          case "11to1230":
+            start = family ? 1100 : 1230;
+            end = family ? 1230 : 1300; 
+            break;
+          case "1to230":
+            start = family ? 1300 : 1430;
+            end = family ? 1430 : 1500;
+            break;
+          case "3to430":
+            start = family ? 1500 : 1630;
+            end = family ? 1630 : 1700;
+            break;
+          case "5to630":
+            start = family ? 1700 : 1830;
+            end = family ? 1830 : 1900;
+            break;
+          case "7to830":
+            start = family ? 1900 : 2030;
+            end = family ? 2030 : 2100;
+            break;
+        }
+
         startTime = start;
         endTime = end;
+
         if (sessionExists)
           openReservationModal();
-        else {
-          openTimeslotAfterLogin = true;
+        else 
           openLogin();
-        }
       }
  
       function postEvent() {
+        let resType = $("input:radio[name=reservationType]:checked").val();
+        let resSelect = document.getElementById("resSelect");
+
+        if (resType === 'lap' && resSelect.options[resSelect.selectedIndex].value === "0") {
+          document.getElementById("resResults").innerHTML = "<red>Select the number of lap swimmers to make a reservation.</red>";
+          return;
+        }
+
         const event = {
           date: selectedDate,
           start: startTime,
-          end: endTime
+          end: endTime,
+          type: resType,
+          numberSwimmers: resSelect.options[resSelect.selectedIndex].value
         };
 
         const callback = (success, data) => {
@@ -922,7 +1074,7 @@
       }
  
       function postLogin() {
-        var username = document.getElementById("loginEmail").value;
+        var username = document.getElementById("loginEmail").value.trim();
         var password = document.getElementById("loginPassword").value; 
 
         var loginCreds = {
@@ -936,10 +1088,6 @@
             document.getElementById("loginResults").innerHTML = data.message;
           }
           else {
-            if (openTimeslotAfterLogin) {
-              openTimeslotAfterLogin = false;
-              openReservationModal();
-            }
             document.getElementById("loginResults").innerHTML = data;
             setTimeout(() => {loginModal.style.display = "none"}, 1000);
           }
@@ -998,6 +1146,8 @@
         if (!status) {
           document.getElementById("manageEventsResults").innerHTML = data;
         } else {
+          if (selectedDate !== null)
+            showTimeSlots(selectedDate);
           document.getElementById("manageEventsResults").innerHTML = "Event has been removed...";
           setTimeout(() => {
             if (manageEventsModal.style.display !== "none")
