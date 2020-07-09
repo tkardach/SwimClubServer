@@ -1,0 +1,1012 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  </head>
+  <body>
+    <style>
+      
+      body {
+        margin: 5%;
+      }
+
+      #datep {
+        display: none;
+      }
+
+      .ui-datepicker-calendar tbody td > a.hover-calendar-cell {
+        border: 1px solid #074e91;
+        background: #5bacf7 url(images/ui-bg_glass_15_5bacf7_1x400.png) 70% 50% repeat-x;
+        font-weight: normal;
+        color: #1a1a1a;
+        text-align: center;
+      }
+
+      #addon{background-color:#999; width:100%}
+
+      .reservation-div {
+        display: inline-block;
+        text-align: center;
+        width: 100%;
+      }
+
+      #timeslots {
+        text-align: left;
+      }
+
+      p strong {
+        color: rgb(243, 6, 6);
+        font-size: 20px;
+      }
+
+      #reservation-selection {
+        display: inline-block;
+        margin: 0 auto;
+      }
+
+      @media screen and (min-width: 500px) {
+        .ui-datepicker {
+          font-size: 75%;
+        }
+      }
+      
+      @media screen and (min-width: 700px) {
+        .ui-datepicker {
+          font-size: 200%;
+        }
+      }
+
+      h1 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 4vw;
+      }
+
+      h2 {
+        font-size: 3vw!important;
+      }
+
+      p {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 2vw;
+      }
+
+      .scaled-button {
+        font-size: 2vw;
+      }
+
+      .medium-font {
+        font-size: 2vw!important;
+      }
+
+      .large-font {
+        font-size: 3vw!important;
+      }
+
+      .timeslot {
+        width: 100%;
+        background-color: #00AFF3;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .timeslot:hover:not([disabled]) {
+        background-color: white;
+        color: #00AFF3;
+      }
+
+      .timeslot:disabled {
+        background-color: rgb(150, 150, 150);
+        color: rgb(207, 207, 207);
+        cursor: default;
+      }
+
+      .timeslot:focus {
+        outline: 0;
+        background-color: rgb(124, 200, 230); 
+      }
+
+      .timeslot:active:hover {
+        background-color: rgb(228, 228, 228); 
+      }
+
+      /* The Modal (background) */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content/Box */
+      .modal-content {
+        clear: both;
+        background-color: #fefefe;
+        border: 1px solid #888;
+        padding: 20px;
+        margin: 20% auto; /* 15% from the top and centered */
+        width: 80%; /* Could be more or less, depending on screen size */
+      }
+
+      /* The Close Button */
+      .close {
+        color: #aaa;
+        margin-left: auto;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #credentialContainer {
+        width: 100%;
+      }
+
+      #credentialContainer span {
+        margin: 15px;
+      }
+      
+      #credentialContainer a {
+        margin: 15px;
+      }
+      .fake-link {
+        font-size: 2vw;
+        color: rgb(0, 98, 190);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .fake-link:hover,
+      .fake-link:focus {
+        color: rgb(0, 66, 128);
+      }
+      
+      .fake-link:active {
+        color: rgb(0, 110, 212);
+      }
+
+      #event a {
+        display: inline-block
+      }
+    </style>
+    <script>
+      // Constants
+      const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const API_URL = "https://api.saratogaswimclub.com/api/";
+      const CALENDAR_API = API_URL + "reservations/";
+      const USER_API = API_URL + "users/";
+
+      // Variables
+      var sessionExists;
+      var selectedDate;
+      var startTime, endTime;
+      var openTimeslotAfterLogin = false;
+
+      // Request Methods
+
+      function getUserInformation(callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+        xhr.open("GET", USER_API + 'me', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send();
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, `Status ${this.status} received:\nReason: ${this.responseText}`);
+          callback(true, JSON.parse(this.responseText));
+        }
+      }
+
+      function postEventToCalendar(event, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+        xhr.open("POST", CALENDAR_API, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(JSON.stringify(event));
+        document.getElementById("resResults").innerHTML = "Sending Request. Please Wait...";
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, JSON.parse(this.responseText));
+        }
+      }
+
+      function loginToServer(creds, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+
+        xhr.open("POST", USER_API + 'login', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(JSON.stringify(creds));
+        document.getElementById("loginResults").innerHTML = "Sending Request. Please Wait...";
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, this.responseText);
+        }
+
+      }
+
+      function postForgotPassword(creds, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+
+        xhr.open("POST", USER_API + 'forgot', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(JSON.stringify(creds));
+        document.getElementById("forgotResults").innerHTML = "Sending Request. Please Wait...";
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, this.responseText);
+        }
+      }
+
+      function postNewAccount(creds, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+
+        xhr.open("POST", USER_API + 'signup', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(JSON.stringify(creds));
+        document.getElementById("accountResults").innerHTML = "Sending Request. Please Wait...";
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, this.responseText);
+        }
+      }
+
+      function getReservationForDateTimeRange(date, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, "<strong>Connection to server refused, please use 3DCart reservation system</strong><br>" +
+            "<a href=\"https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html\">Click Here</a>"
+            );
+          }
+        };
+
+        xhr.open("GET", CALENDAR_API + date, true);
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, JSON.parse(this.responseText));
+        }
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send();
+        
+      }
+
+      function updateSession() {
+        $.get({
+          url: USER_API + 'session', 
+          xhrFields: {
+            withCredentials: true
+          }}, (res) => {
+          if (res.sessionExists) {
+            sessionExists = true;
+            document.getElementById("userLoggedIn").style.display = "block";
+            document.getElementById("userLoggedOut").style.display = "none";
+          }
+          else {
+            sessionExists = false;
+            document.getElementById("userLoggedIn").style.display = "none";
+            document.getElementById("userLoggedOut").style.display = "block";
+          }
+        })
+      }
+
+      function deleteEventById(id, callback) {
+        document.getElementById("manageEventsResults").innerHTML = "Deleting event, please wait...";
+
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            ```
+            Connection to server refused, please use 3DCart reservation system:
+            <a href="https://saratogaswimclub.3dcartstores.com/Members--Swim-Time-reservation_c_13.html">Click Here</a>
+            ```
+            );
+          }
+        };
+        xhr.open("DELETE", CALENDAR_API + id, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send();
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, `Status ${this.status} received:\nReason: ${this.responseText}`);
+          callback(true, this.responseText);
+        }
+      }
+
+      // Utility Methods
+      function disableAllTimeSlots() {
+        $("#11to1230").prop("disabled", true);
+        $("#1to230").prop("disabled", true);
+        $("#3to430").prop("disabled", true);
+        $("#5to630").prop("disabled", true);
+        $("#7to830").prop("disabled", true);
+      }
+
+      function enableAllTimeSlots() {
+        $("#11to1230").prop("disabled", false);
+        $("#1to230").prop("disabled", false);
+        $("#3to430").prop("disabled", false);
+        $("#5to630").prop("disabled", false);
+        $("#7to830").prop("disabled", false);
+      }
+
+      function hideAllTimeSlots() {
+        document.getElementById("timeslots").style.display = "none";
+      }
+
+      function showAllTimeslots() {
+        document.getElementById("timeslots").style.display = "block";
+      }
+
+      function showTimeSlots(date) {
+        document.getElementById("reservationMessage").innerHTML = "";
+        hideAllTimeSlots();
+        $("#timeslots").css("visibility", "visible");
+
+        var today = new Date();
+        var selected = new Date(date);
+        
+        today.setHours(0,0,0,0);
+        selected.setHours(0,0,0,0);
+
+        disableAllTimeSlots();
+
+        // Do not allow timeslots after this week        
+        let thisWeekEnd = new Date();
+
+        let offset = 0;
+
+        let now = new Date();
+        if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
+          offset = 7;
+
+        if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
+        else
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
+
+
+        if (thisWeekEnd - selected < 0)
+          return document.getElementById("reservationMessage").innerHTML = "You may start making reservations for the following week starting on Thursdays a 6PM.";
+
+
+        showAllTimeslots();
+
+        // If the date has already passed, disable all timeslots
+        if (selected < today) {
+          return;
+        }
+
+        const callback = (status, data) => {
+          if (!status) {
+            document.getElementById("errorMessage").innerHTML = data.message;
+            return;
+          }
+
+          if (data.length === 0) {
+            enableAllTimeSlots();
+            return;
+          }
+
+          for (var i =0; i < data.length; i++) {
+            data[i].start.dateTime = new Date(data[i].start.dateTime);
+            data[i].end.dateTime = new Date(data[i].end.dateTime)
+          }
+
+            let ts1 = data.filter(slot => 
+              slot.start.dateTime.getHours() === 11 && 
+              slot.start.dateTime.getMinutes() === 0 &&
+              slot.end.dateTime.getHours() >= 12 &&
+              slot.end.dateTime.getHours() <= 13
+            );
+ 
+            
+            let ts2 = data.filter(slot => 
+              slot.start.dateTime.getHours() === 13 && 
+              slot.start.dateTime.getMinutes() === 0 &&
+              slot.end.dateTime.getHours() >= 14 &&
+              slot.end.dateTime.getHours() <= 15
+            );
+ 
+            let ts3 = data.filter(slot => 
+              slot.start.dateTime.getHours() === 15 && 
+              slot.start.dateTime.getMinutes() === 0 &&
+              slot.end.dateTime.getHours() >= 16 &&
+              slot.end.dateTime.getHours() <= 17
+            );
+ 
+            let ts4 = data.filter(slot => 
+              slot.start.dateTime.getHours() === 17 && 
+              slot.start.dateTime.getMinutes() === 0 &&
+              slot.end.dateTime.getHours() >= 18 &&
+              slot.end.dateTime.getHours() <= 19
+            );
+ 
+            let ts5 = data.filter(slot => 
+              slot.start.dateTime.getHours() === 19 && 
+              slot.start.dateTime.getMinutes() === 0 &&
+              slot.end.dateTime.getHours() >= 20 &&
+              slot.end.dateTime.getHours() <= 21
+            );
+
+          // Debug randomly disable timeslots simulating full slots
+          $("#11to1230").prop("disabled", ts1.length >= 4);
+
+          $("#1to230").prop("disabled", ts2.length >= 4);
+            
+          $("#3to430").prop("disabled", ts3.length >= 4);
+
+          $("#5to630").prop("disabled", ts4.length >= 4);
+
+          $("#7to830").prop("disabled", ts5.length >= 4);
+        }
+        getReservationForDateTimeRange(selected.toISOString(), callback);
+      }
+
+      $(function() {
+        $('#datepicker').datepicker({
+          inline: true,
+          altField: "#datep",
+          onSelect: function(date) {
+            selectedDate = new Date(date);
+            showTimeSlots(date)
+          }
+        })
+      });
+
+      updateSession();
+    </script>
+    <div id="credentialContainer">
+      <div id="userLoggedIn">
+        <span class="fake-link" id="eventsButton" onclick="openManageEventsModal()">Manage Events</span><br>
+        <span class="fake-link" id="logoutButton" onclick="logout()">Logout</span>
+      </div>
+      <div id="userLoggedOut">
+        <span class="fake-link" id="loginButton" onclick="openLogin()">Login</span><br>
+        <span class="fake-link" id="createAccountButton" onclick="openCreateAccount()">Create Account</span>
+      </div>
+      <a class="fake-link" href="https://sites.google.com/site/saratogaswimclub/calendar/reservation-help">Help</a>
+    </div>
+    <div class="reservation-div">
+      <h1>Make a reservation!</h1> 
+      <p id="errorMessage"></p>
+      <input type="text" id="datep" />
+      <div id="reservation-selection">
+        <div id="datepicker">
+        </div>
+        <div id="timeslots" style="visibility: hidden;">
+          <div>
+            <button class="timeslot" id="11to1230" onclick="timeslotClicked('11:00 am - 12:30 pm', 1100, 1230)">11:00 am - 12:30 pm</button>
+          </div>
+          <div>
+            <button class="timeslot" id="1to230" onclick="timeslotClicked('1:00 pm - 2:30 pm', 1300, 1430)">1:00 pm - 2:30 pm</button>
+          </div>
+          <div>
+            <button class="timeslot" id="3to430" onclick="timeslotClicked('3:00 pm - 4:30 pm', 1500, 1630)">3:00 pm - 4:30 pm</button>
+          </div>
+          <div>
+            <button class="timeslot" id="5to630" onclick="timeslotClicked('5:00 pm - 6:30 pm', 1700, 1830)">5:00 pm - 6:30 pm</button>
+          </div>
+          <div>
+            <button class="timeslot" id="7to830" onclick="timeslotClicked('7:00 pm - 8:30 pm', 1900, 2030)">7:00 pm - 8:30 pm</button>
+          </div>
+        </div>
+      </div>
+      <div id="reservation-picker-message">
+        <br>
+        <p id="reservationMessage"></p>
+      </div>
+    </div>
+ 
+    <div id="reservationModel" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeRes" class="close">&times;</span>
+        <form>
+          <h2>Please confirm your reservation</h2>
+          <label class="medium-font" for="resSummary">Reservation:</label>
+          <label class="medium-font" id="resSummary"></label><br><br>
+          <input class="medium-font" type="button" value="Confirm" onclick="postEvent()">
+          <p id="resResults"></p>
+          <span class="fake-link" id="resManageEventsButton" onclick="openManageEventsModal()">Manage Events</span>
+        </form> 
+      </div>
+    </div>
+
+    <div id="reservationConfirmedModel" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeResConf" class="close">&times;</span>
+        <form>
+          <h2 id="resConfirmedTitle"></h2><br>
+          <p class="medium-font" id="resConfResults"></p>
+          <input class="medium-font" type="button" value="Dismiss" onclick="closeReservationConfirmedModal()"><br>
+          <span class="fake-link" id="resManageEventsButton" onclick="openManageEventsModal()">Manage Events</span>
+        </form> 
+      </div>
+    </div>
+ 
+    <div id="loginModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeLogin" class="close">&times;</span>
+        <form>
+          <label class="medium-font" for="username">Member Email:</label><br>
+          <input type="text" id="loginEmail" name="username"><br><br>
+          <label class="medium-font" for="member">Password: </label><br>
+          <input type="password" id="loginPassword" name="password"><br><br>
+          <input class="medium-font" type="button" value="Submit" onclick="postLogin()">
+          <span class="fake-link" onclick="openForgotPassword()">Forgot Password?</span>
+          <span class="fake-link" onclick="openCreateAccount()">Create Account</span>
+          <p class="medium-font" id="loginResults"></p>
+        </form> 
+      </div>
+    </div>
+ 
+    <div id="manageEventsModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeEvents" class="close">&times;</span>
+        <h2 style="margin: 0 auto;" id="manageEventsLoading"></h2>
+        <div id="manageEventsBody"></div>
+        <p class="medium-font" id="manageEventsResults"></p>
+      </div>
+    </div>
+ 
+ 
+    <div id="createAccountModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeAccount" class="close">&times;</span>
+        <form>
+          <label class="medium-font" for="username">Member Email:</label><br>
+          <input type="text" id="accountEmail" name="username"><br><br>
+          <label class="medium-font" for="member">Password: </label><br>
+          <input type="password" id="accountPassword" name="password"><br><br>
+          <label class="medium-font" for="member">Validate Password: </label><br>
+          <input type="password" id="accountPasswordValidate" name="confirm"><br><br>
+          <input class="medium-font" type="button" value="Submit" onclick="createAccountEvent()">
+          <span class="fake-link" onclick="openForgotPassword()">Forgot Password?</span>
+          <span class="fake-link" onclick="openLogin()">Login</span>
+          <p class="medium-font" id="accountResults"></p>
+        </form> 
+      </div>
+    </div>
+
+    <div id="forgotPasswordModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeForgot" class="close">&times;</span>
+        <form>
+          <label class="medium-font" for="username">Member Email:</label><br>
+          <input type="text" id="forgotEmail" name="username"><br><br>
+          <input class="medium-font" id="eventSubmit" type="button" value="Submit" onclick="forgotPasswordEvent()">
+          <span class="fake-link" onclick="openLogin()">Login</span>
+          <span class="fake-link" onclick="openCreateAccount()">Create Account</span>
+          <p class="medium-font" id="forgotResults"></p>
+        </form> 
+      </div>
+    </div>
+
+    <script>
+      // Get the modals
+      var resModal = document.getElementById("reservationModel");
+      var resConfirmModal = document.getElementById("reservationConfirmedModel");
+      var loginModal = document.getElementById("loginModal");
+      var forgotPasswordModal = document.getElementById("forgotPasswordModal");
+      var createAccountModal = document.getElementById("createAccountModal");
+      var manageEventsModal = document.getElementById("manageEventsModal");
+
+      // Get the <span> element that closes the modals
+      var resSpan = document.getElementById("closeRes");
+      var resConfSpan = document.getElementById("closeResConf");
+      var loginSpan = document.getElementById("closeLogin");
+      var accSpan = document.getElementById("closeAccount");
+      var forgotSpan = document.getElementById("closeForgot");
+      var eventsSpan = document.getElementById("closeEvents");
+
+      // Open modals
+      function logout() {
+        $.get({
+          url: USER_API + 'logout', 
+          xhrFields: {
+            withCredentials: true
+          }}, (res) => {
+            updateSession();
+        })
+      }
+
+      // Open/Close modal operations
+
+      function openLogin() {
+        document.getElementById("loginResults").innerHTML = "";
+        loginModal.style.display = "block";
+        manageEventsModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+        resModal.style.display = "none";
+        resConfirmModal.style.display = "none";
+      }
+
+      function openCreateAccount() {
+        document.getElementById("accountResults").innerHTML = "";
+        createAccountModal.style.display = "block";
+        manageEventsModal.style.display = "none";
+        loginModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+        resModal.style.display = "none";
+        resConfirmModal.style.display = "none";
+      }
+
+      function openForgotPassword() {
+        document.getElementById("forgotResults").innerHTML = "";
+        forgotPasswordModal.style.display = "block";
+        manageEventsModal.style.display = "none";
+        loginModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        resModal.style.display = "none";
+        resConfirmModal.style.display = "none";
+      }
+
+      function openReservationModal() {
+        document.getElementById("resResults").innerHTML = "";
+        document.getElementById("resManageEventsButton").style.display = "none";
+        resModal.style.display = "block";
+        manageEventsModal.style.display = "none";
+        loginModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+        resConfirmModal.style.display = "none";
+      }
+
+      function openReservationConfirmedModal() {
+        resConfirmModal.style.display = "block";
+        resModal.style.display = "none";
+        manageEventsModal.style.display = "none";
+        loginModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+      }
+
+      function closeReservationConfirmedModal() {
+        resConfirmModal.style.display = "none";
+      }
+
+      function openManageEventsModal() {
+        document.getElementById("manageEventsBody").innerHTML = "";
+        document.getElementById("manageEventsResults").innerHTML = "";
+        document.getElementById("manageEventsLoading").innerHTML = "Loading your events, please wait..."
+        manageEventsModal.style.display = "block";
+        resModal.style.display = "none";
+        loginModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+
+        const callback = (status, data) => {
+          if (!status)
+            return document.getElementById("manageEventsLoading").innerHTML = "Failed to get your user data"
+
+          document.getElementById("manageEventsLoading").innerHTML = `All events for family ${data.user.lastName}`;
+          const events = data.events;
+
+          events.sort(function (a, b) {
+            let first = new Date(a.start.dateTime);
+            let second = new Date(b.start.dateTime); 
+            return first - second;
+          })
+          
+          var today = new Date();
+
+          var div = document.getElementById("manageEventsBody");
+          var eventTable = document.createElement('table');
+          eventTable.className = "event";
+          eventTable.style.margin = "auto";
+
+          div.appendChild(eventTable);
+          events.forEach(event => {
+            let start =  new Date(event.start.dateTime);
+            let end = new Date(event.end.dateTime);
+
+            var string = `${WEEKDAYS[start.getDay()]} ${start.toLocaleDateString()} from ${start.toLocaleTimeString()} to ${end.toLocaleTimeString()}`;
+
+            // table row
+            var row = document.createElement('tr');
+
+            // event link
+            var column1 = document.createElement('td');
+            var link = document.createElement('a');
+            link.href = event.htmlLink;
+            link.innerHTML = string;
+            link.className = "medium-font";
+            column1.appendChild(link);
+            row.appendChild(column1);
+
+            if (start > today) {
+              // delete button
+              const deleteCallback = () => {
+                deleteEventById(event.id, onEventDelete);
+              }
+
+              var column2 = document.createElement('td');
+
+              var button = document.createElement('span');
+              button.className = "fake-link medium-font";
+              button.innerHTML = "Delete Event";
+              button.style.marginLeft = "15px";
+              button.onclick = deleteCallback;
+
+              column2.appendChild(button);
+              row.appendChild(column2);
+            }
+
+            eventTable.appendChild(row);
+          })
+        }
+
+        const userInfo = getUserInformation(callback);
+      }
+ 
+
+      function closeLogin() {
+        loginModal.style.display = 'none';
+        openTimeslotAfterLogin = false;
+      }
+
+      // Close buttons
+      resSpan.onclick = function() { 
+        resModal.style.display = 'none';
+      }
+      resConfSpan.onclick = function() {
+        resConfirmModal.style.display = 'none';
+      }
+      loginSpan.onclick = function() { 
+        closeLogin();
+      }
+      accSpan.onclick = function() { 
+        createAccountModal.style.display = 'none';
+      }
+      forgotSpan.onclick = function() { 
+        forgotPasswordModal.style.display = 'none';
+      }
+      eventsSpan.onclick = function() { 
+        manageEventsModal.style.display = 'none';
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == resModal)  {
+          resModal.style.display = "none";
+        }
+        if (event.target == resConfirmModal) {
+          resConfirmModal.style.display = "none";
+        }
+        if (event.target == loginModal)  {
+          closeLogin();
+        }
+        if (event.target == forgotPasswordModal)  {
+          forgotPasswordModal.style.display = "none";
+        }
+        if (event.target == createAccountModal)  {
+          createAccountModal.style.display = "none";
+        }
+        if (event.target == manageEventsModal)  {
+          manageEventsModal.style.display = "none";
+        }
+      }
+
+      // HTML actions
+      function timeslotClicked(data, start, end) {
+        document.getElementById("resSummary").innerHTML = `${WEEKDAYS[selectedDate.getDay()]} ${selectedDate.toLocaleDateString()} from ${data}`;
+        startTime = start;
+        endTime = end;
+        if (sessionExists)
+          openReservationModal();
+        else {
+          openTimeslotAfterLogin = true;
+          openLogin();
+        }
+      }
+ 
+      function postEvent() {
+        const event = {
+          date: selectedDate,
+          start: startTime,
+          end: endTime
+        };
+
+        const callback = (success, data) => {
+          if (!success) {
+            console.log(data);
+            document.getElementById("resConfirmedTitle").innerHTML = "Reservation Not Made!";
+            document.getElementById("resConfResults").innerHTML = data.message;
+            document.getElementById("resManageEventsButton").style.display = "block";
+            openReservationConfirmedModal();
+          } else {
+            let startTime = new Date(data.start.dateTime).toLocaleTimeString();
+            let endTime = new Date(data.end.dateTime).toLocaleTimeString();
+            let date = new Date(data.end.dateTime).toLocaleDateString();
+            document.getElementById("resConfirmedTitle").innerHTML = "Reservation Confirmed!";
+            let message = `Event for member ${data.lastName} has been created for ${date} at ${startTime} to ${endTime}.`;
+            document.getElementById("resConfResults").innerHTML = message; 
+            openReservationConfirmedModal();
+            showTimeSlots(selectedDate);
+          }
+        }
+
+        postEventToCalendar(event, callback);
+      }
+ 
+      function postLogin() {
+        var username = document.getElementById("loginEmail").value;
+        var password = document.getElementById("loginPassword").value; 
+
+        var loginCreds = {
+          username: username,
+          password: password
+        }
+
+        const callback = (success, data) => {
+          updateSession();
+          if (!success) {
+            document.getElementById("loginResults").innerHTML = data.message;
+          }
+          else {
+            if (openTimeslotAfterLogin) {
+              openTimeslotAfterLogin = false;
+              openReservationModal();
+            }
+            document.getElementById("loginResults").innerHTML = data;
+            setTimeout(() => {loginModal.style.display = "none"}, 1000);
+          }
+        }
+
+        loginToServer(loginCreds, callback);
+      }
+
+      function forgotPasswordEvent() {
+        var email = document.getElementById("forgotEmail").value;
+
+        var forgotCreds = {
+          email: email
+        }
+
+        const callback = (success, data) => {
+          updateSession();
+          if (!success)
+            document.getElementById("forgotResults").innerHTML = data.message;
+          else {
+            document.getElementById("forgotResults").innerHTML = data;
+            setTimeout(() => {forgotPasswordModal.style.display = "none"}, 1000);
+          }
+        }
+
+        postForgotPassword(forgotCreds, callback);
+      }
+
+      function createAccountEvent() {
+        var email = document.getElementById("accountEmail").value;
+        var validate = document.getElementById("accountPasswordValidate").value;
+        var password = document.getElementById("accountPassword").value;
+
+        if (password !== validate)
+            return document.getElementById("accountResults").innerHTML = "Passwords do not match."
+
+        var accountCreds = {
+          username: email,
+          password: password
+        }
+
+        const callback = (success, data) => {
+          updateSession();
+          if (!success)
+            document.getElementById("accountResults").innerHTML = data.message;
+          else {
+            document.getElementById("accountResults").innerHTML = data;
+            setTimeout(() => {createAccountModal.style.display = "none"}, 1000);
+          }
+        }
+
+        postNewAccount(accountCreds, callback);
+      }
+ 
+      function onEventDelete(status, data) {
+        if (!status) {
+          document.getElementById("manageEventsResults").innerHTML = data;
+        } else {
+          document.getElementById("manageEventsResults").innerHTML = "Event has been removed...";
+          setTimeout(() => {
+            if (manageEventsModal.style.display !== "none")
+              openManageEventsModal();
+          }, 1000);
+        }
+      }
+
+    </script>
+  </body>
+</html>
+  
