@@ -748,15 +748,18 @@
       style="border:solid 1px #777; margin: 50px; width: 80%; height: 30%" frameborder="0" scrolling="no">
       </iframe>
     </div>
+
+
+    <div class="reservation-div">
+      <h1>Make a reservation!</h1> 
+    </div>
+      <br>
     
     <a class="fake-link userLoggedIn" id="eventsButton" onclick="openManageEventsModal()">Manage Events</a>
     <a class="fake-link userLoggedIn" id="logoutButton" onclick="logout()">Logout</a>
     <a class="fake-link userLoggedOut" id="loginButton" onclick="openLogin()">Login</a>
     <a class="fake-link userLoggedOut" id="createAccountButton" onclick="openCreateAccount()">Create Account</a>
-
     <div class="reservation-div">
-      <h1>Make a reservation!</h1> 
-      <br>
       <p id="errorMessage"></p>
       <p>Please select a reservation type:</p>
       <form name="reservationTypeForm" class="switch-field">
