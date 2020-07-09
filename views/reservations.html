@@ -35,14 +35,6 @@
         text-align: left;
       }
 
-      p strong {
-        color: rgb(243, 6, 6);
-        font-size: 20px;
-      }
-
-      p red {
-        color: rgb(243, 6, 6);
-      }
       #reservation-selection {
         display: inline-block;
         margin: 0 auto;
@@ -322,6 +314,18 @@
 
       .userLoggedOut {
         cursor: pointer;
+      }
+
+      .expand-button {
+        background-color: white;
+        border-color: gray;
+        color: black;
+        width: 50%;
+        margin: auto;
+      }
+
+      p small {
+        font-size: 1vw;
       }
 
     </style>
@@ -706,7 +710,6 @@
 
       updateSession();
     </script>
-    
     <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
       <img src="https://api.saratogaswimclub.com/images/customLogo.gif" width="30" height="30" alt="">
       <a class="navbar-brand" href="#">Saratoga Swim Club</a>
@@ -739,6 +742,11 @@
         </ul>
       </div>
     </nav>
+    <div style="text-align: center">
+      <iframe src="https://calendar.google.com/calendar/embed?height=600&amp;wkst=1&amp;bgcolor=%23ffffff&amp;ctz=America%2FLos_Angeles&amp;src=bHNzbW5zY3I4YTQ5YmNnNTFrbnZ0Z28yMzRAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%233F51B5&amp;mode=WEEK" 
+      style="border:solid 1px #777; margin: 50px" width="800" height="600" frameborder="0" scrolling="no">
+      </iframe>
+    </div>
     <div class="reservation-div">
       <h1>Make a reservation!</h1> 
       <br>
