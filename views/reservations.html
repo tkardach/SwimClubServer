@@ -150,7 +150,7 @@
         background-color: #fefefe;
         border: 1px solid #888;
         padding: 20px;
-        margin: 20% auto; /* 15% from the top and centered */
+        margin: 50% auto; /* 15% from the top and centered */
         width: 80%; /* Could be more or less, depending on screen size */
       }
 
@@ -742,11 +742,18 @@
         </ul>
       </div>
     </nav>
+
     <div style="text-align: center">
       <iframe src="https://calendar.google.com/calendar/embed?height=600&amp;wkst=1&amp;bgcolor=%23ffffff&amp;ctz=America%2FLos_Angeles&amp;src=bHNzbW5zY3I4YTQ5YmNnNTFrbnZ0Z28yMzRAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%233F51B5&amp;mode=WEEK" 
       style="border:solid 1px #777; margin: 50px; width: 80%; height: 30%" frameborder="0" scrolling="no">
       </iframe>
     </div>
+    
+    <a class="fake-link userLoggedIn" id="eventsButton" onclick="openManageEventsModal()">Manage Events</a>
+    <a class="fake-link userLoggedIn" id="logoutButton" onclick="logout()">Logout</a>
+    <a class="fake-link userLoggedOut" id="loginButton" onclick="openLogin()">Login</a>
+    <a class="fake-link userLoggedOut" id="createAccountButton" onclick="openCreateAccount()">Create Account</a>
+
     <div class="reservation-div">
       <h1>Make a reservation!</h1> 
       <br>
