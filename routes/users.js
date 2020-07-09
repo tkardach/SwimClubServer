@@ -81,6 +81,9 @@ router.post('/login', function(req, res, next) {
   const {error} = validate(req.body);
   if (error) 
     return res.status(400).send(error.details[0].message);
+  
+  if (req.body.username === '')
+    return res.status(400).send(errorResponse(400, "Member Email must not be empty."))
 
   passport.authenticate('local', function(err, user, info) {
     if (err) 

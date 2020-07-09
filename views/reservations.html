@@ -170,7 +170,8 @@
       }
 
       #credentialContainer {
-        width: 100%;
+        display: block;
+        float: left;
       }
 
       #credentialContainer span {
@@ -326,6 +327,12 @@
 
       p small {
         font-size: 1vw;
+      }
+
+      input[type=button], input[type=submit] {
+        background-color: #00AFF3;
+        color: white;
+        cursor: pointer;
       }
 
     </style>
@@ -754,11 +761,13 @@
       <h1>Make a reservation!</h1> 
     </div>
       <br>
-    
-    <a class="fake-link userLoggedIn" id="eventsButton" onclick="openManageEventsModal()">Manage Events</a>
-    <a class="fake-link userLoggedIn" id="logoutButton" onclick="logout()">Logout</a>
-    <a class="fake-link userLoggedOut" id="loginButton" onclick="openLogin()">Login</a>
-    <a class="fake-link userLoggedOut" id="createAccountButton" onclick="openCreateAccount()">Create Account</a>
+    <div id="credentialContainer">
+      <span class="fake-link userLoggedIn" id="eventsButton" onclick="openManageEventsModal()">Manage Events</span>
+      <span class="fake-link userLoggedIn" id="logoutButton" onclick="logout()">Logout</span>
+      <span class="fake-link userLoggedOut" id="loginButton" onclick="openLogin()">Login</span>
+      <span class="fake-link userLoggedOut" id="createAccountButton" onclick="openCreateAccount()">Create Account</span>
+    </div>
+
     <div class="reservation-div">
       <p id="errorMessage"></p>
       <p>Please select a reservation type:</p>
@@ -1187,6 +1196,7 @@
       }
  
       function postLogin() {
+        document.getElementById("loginResults").innerHTML = "";
         var username = document.getElementById("loginEmail").value.trim();
         var password = document.getElementById("loginPassword").value; 
 
@@ -1194,6 +1204,9 @@
           username: username,
           password: password
         }
+
+        if (username === '')
+          return document.getElementById("loginResults").innerHTML = "Member email must not be empty!";
 
         const callback = (success, data) => {
           updateSession();
@@ -1237,6 +1250,9 @@
         var email = document.getElementById("accountEmail").value;
         var validate = document.getElementById("accountPasswordValidate").value;
         var password = document.getElementById("accountPassword").value;
+
+        if (email === '')
+          return document.getElementById("loginResults").innerHTML = "Member email must not be empty!";
 
         if (password !== validate)
             return document.getElementById("accountResults").innerHTML = "Passwords do not match."
