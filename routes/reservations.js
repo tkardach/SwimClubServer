@@ -13,6 +13,7 @@ const {Reservation} = require('../models/reservation');
 const _ = require('lodash');
 const { logError } = require('../debug/logging');
 const {errorResponse} = require('../shared/utility');
+const path = require('path');
 
 
 // Validates a /POST request
@@ -38,6 +39,10 @@ function validateGetReservation(res) {
 
   return Joi.validate(res, schema);
 }
+
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/reservations.html'));
+})
 
 router.get('/:date', async (req, res) => {
   try {
