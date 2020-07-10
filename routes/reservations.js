@@ -59,7 +59,7 @@ router.get('/:date', async (req, res) => {
 router.get('/family/:date', async (req, res) => {
   try {
     const result = await calendar.getEventsForDate(req.params.date);
-    const filtered = result.filter(event => event.description === 'family' || event.description === '');
+    const filtered = result.filter(event => event.description === 'family' || !event.hasOwnProperty('description'));
     res.status(200).send(filtered);
   } catch (err) {
     logError(err, 'Error thrown while trying to post event to calendar');
