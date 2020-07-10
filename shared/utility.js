@@ -9,5 +9,12 @@ function errorResponse(status, message) {
   }
 }
 
+function datetimeToNumberTime(datetime) {
+  var hours = datetime.getHours();
+  var minutes = datetime.getMinutes();
+  return (hours * 100) + minutes;
+}
+
 module.exports.delay = delay;
 module.exports.errorResponse = errorResponse;
+module.exports.datetimeToNumberTime = datetimeToNumberTime;
