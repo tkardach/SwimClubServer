@@ -10,8 +10,9 @@ function errorResponse(status, message) {
 }
 
 function datetimeToNumberTime(datetime) {
-  var hours = datetime.getHours();
-  var minutes = datetime.getMinutes();
+  let date = new Date(datetime);
+  var hours = date.getHours();
+  var minutes = date.getMinutes();
   return (hours * 100) + minutes;
 }
 
