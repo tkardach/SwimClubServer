@@ -240,7 +240,7 @@ router.post('/', async (req, res) => {
   // TODO: This code is BAD. here we are using the POSTed start and end time as a reference. In the future
   // we should store a list of timeslots on server and client will use that
   const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
-  if (reservationsOnDay.length >= maxResPerSlot)
+  if (reservationsOnDay.length + extraRes >= maxResPerSlot)
     return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
   //#endregion
