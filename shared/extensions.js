@@ -1,5 +1,6 @@
 const {validateTime} = require('./validation')
 
+// Date methods
 if (!Date.prototype.compareDate) {
   Date.prototype.compareDate = function(date1) {
     if (!(date1 instanceof Date))
@@ -42,4 +43,17 @@ if (!Date.prototype.equalsTimeNumber) {
     if (self.getHours() !== parseInt(number / 100) || self.getMinutes() !== (number % 100)) return false;
     return true;
   }
+}
+
+// String methods
+if (!String.prototype.format) {
+  String.prototype.format = function() {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function(match, number) { 
+      return typeof args[number] != 'undefined'
+        ? args[number]
+        : match
+      ;
+    });
+  };
 }

@@ -9,5 +9,6 @@
   "sheetId": "",
   "sheetAPIKey": "",
   "serverKey": "",
-  "serverCert": ""
+  "serverCert": "",
+  "ipEmail": ""
 }

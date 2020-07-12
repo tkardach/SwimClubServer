@@ -8,5 +8,6 @@
   "sessionSecret": "sessionKeySecret",
   "gmailAccount": "swimClubEmail",
   "gmailPass": "swimClubPass",
-  "port": "serverPort"
+  "port": "serverPort",
+  "ipEmail": "ipChangeEmail"
 }

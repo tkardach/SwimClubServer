@@ -9,5 +9,6 @@
   "sheetId": "googleSheetId",
   "sheetAPIKey": "googleSheetAPIKey",
   "serverKey": "httpsServerKey",
-  "serverCert": "httpsServerCert"
+  "serverCert": "httpsServerCert",
+  "ipEmail": ""
 }

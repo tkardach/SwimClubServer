@@ -82,4 +82,7 @@ require('./startup/routes')(app);
 // Initialize Database
 require('./startup/db')();
 
+// Initialize Services
+require('./startup/services');
+
 module.exports = app;
