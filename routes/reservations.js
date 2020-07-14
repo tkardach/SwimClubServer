@@ -51,30 +51,46 @@ router.get('/:date', async (req, res) => {
     const result = await calendar.getEventsForDate(req.params.date);
     res.status(200).send(result);
   } catch (err) {
-    logError(err, 'Error thrown while trying to post event to calendar');
-    return res.status(500).send(errorResponse(500, 'Error thrown while trying to post event to calendar'));
+    logError(err, 'Error thrown while trying to get events from calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to get events from calendar'));
   }
 });
 
 router.get('/family/:date', async (req, res) => {
   try {
     const result = await calendar.getEventsForDate(req.params.date);
-    const filtered = result.filter(event => event.description === 'family' || !event.hasOwnProperty('description'));
+    const filtered = result.filter(event => 
+      event.description === 'family' || 
+      !event.hasOwnProperty('description') ||
+      event.description === 'blocked');
     res.status(200).send(filtered);
   } catch (err) {
-    logError(err, 'Error thrown while trying to post event to calendar');
-    return res.status(500).send(errorResponse(500, 'Error thrown while trying to post event to calendar'));
+    logError(err, 'Error thrown while trying to get events from calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to get events from calendar'));
   }
 });
 
 router.get('/lap/:date', async (req, res) => {
   try {
     const result = await calendar.getEventsForDate(req.params.date);
-    const filtered = result.filter(event => event.description === 'lap');
+    const filtered = result.filter(event => 
+      event.description === 'lap' ||
+      event.description === 'blocked');
     res.status(200).send(filtered);
   } catch (err) {
-    logError(err, 'Error thrown while trying to post event to calendar');
-    return res.status(500).send(errorResponse(500, 'Error thrown while trying to post event to calendar'));
+    logError(err, 'Error thrown while trying to get events from calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to get events from calendar'));
+  }
+});
+
+router.get('/blocked/:date', async (req, res) => {
+  try {
+    const result = await calendar.getEventsForDate(req.params.date);
+    const filtered = result.filter(event => event.description === 'blocked');
+    res.status(200).send(filtered);
+  } catch (err) {
+    logError(err, 'Error thrown while trying to get events from calendar');
+    return res.status(500).send(errorResponse(500, 'Error thrown while trying to get events from calendar'));
   }
 });
 
@@ -82,6 +98,23 @@ router.post('/', async (req, res) => {
   // Make sure required parameters are included in request body
   const { error } = validatePostReservation(req.body);
   if (error) return res.status(400).send(errorResponse(400, error.details[0].message));
+
+  const date = new Date(req.body.date);
+
+  const maxPerWeek = req.body.type === 'family' ? 3 : 4;
+  const maxPerDay = req.body.type === 'family' ? 1 : 2;
+  const familyType = req.body.type === 'family';
+  const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;
+  const maxResPerSlot = req.body.type === 'family' ? 4 : 2;
+
+  // Check if the timeslots for this day are full
+  const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
+  const blockedTimeslot = reservationsOnDay.filter(event => event.description === "blocked");
+  if (blockedTimeslot.length > 0)
+    return res.status(400).send(errorResponse(400, `This timeslot is reserved for ${blockedTimeslot[0].summary}`));
+
+  if (reservationsOnDay.length >= maxResPerSlot)
+    return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
   if (req.body.type === 'lap' && req.body.numberSwimmers === 0)
     return res.status(400).send(errorResponse(400, 'You must specify the number of swimmers for lap reservations'));
@@ -91,8 +124,6 @@ router.post('/', async (req, res) => {
     return res.status(400).send(errorResponse(400, 'User must be signed in to reserve a timeslot'));
 
   if (!req.body.memberEmail) req.body.memberEmail = req.user.email;
-
-  const date = new Date(req.body.date);
 
   let thisWeekEnd = new Date();
 
@@ -133,12 +164,6 @@ router.post('/', async (req, res) => {
   // Check if member has paid their dues
   if (!(member.id in paidMembers)) 
     return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostDuesNotPaid.format(member.lastName)));
-  
-  const maxPerWeek = req.body.type === 'family' ? 3 : 4;
-  const maxPerDay = req.body.type === 'family' ? 1 : 2;
-  const familyType = req.body.type === 'family';
-  const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;
-  const maxResPerSlot = req.body.type === 'family' ? 4 : 2;
 
   // Check if member has already made max reservations for the week
   let weekStart = new Date(date);
@@ -191,12 +216,6 @@ router.post('/', async (req, res) => {
   if (backToBackRes.length > 0)
     return res.status(400).send(errorResponse(400,`We are restricting back-to-back family to lap type reservations. For more information, contact the board of directors.`))
 
-  // Check if the timeslots for this day are full
-  // TODO: This code is BAD. here we are using the POSTed start and end time as a reference. In the future
-  // we should store a list of timeslots on server and client will use that
-  const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
-  if (reservationsOnDay.length >= maxResPerSlot)
-    return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
   if (reservationsOnDay.length + extraRes >= maxResPerSlot)
     return res.status(400).send(errorResponse(400, `Unable to make ${extraRes + 1} reservations, that would exceed the maximum capacity for this timeslot`));

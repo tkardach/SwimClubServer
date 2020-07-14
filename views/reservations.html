@@ -150,7 +150,7 @@
         background-color: #fefefe;
         border: 1px solid #888;
         padding: 20px;
-        margin: 50% auto; /* 15% from the top and centered */
+        margin: 15% auto; /* 15% from the top and centered */
         width: 80%; /* Could be more or less, depending on screen size */
       }
 
@@ -697,15 +697,23 @@
           let resType = $("input:radio[name=reservationType]:checked").val();
           let maxRes = resType === 'family' ? 4 : 2;
 
-          $("#11to1230").prop("disabled", ts1.length >= maxRes);
+          let blockedTs1 = ts1.filter(event => event.description === 'blocked');
+          let blockedTs2 = ts2.filter(event => event.description === 'blocked');
+          let blockedTs3 = ts3.filter(event => event.description === 'blocked');
+          let blockedTs4 = ts4.filter(event => event.description === 'blocked');
+          let blockedTs5 = ts5.filter(event => event.description === 'blocked');
 
-          $("#1to230").prop("disabled", ts2.length >= maxRes);
-            
-          $("#3to430").prop("disabled", ts3.length >= maxRes);
-
-          $("#5to630").prop("disabled", ts4.length >= maxRes);
-
-          $("#7to830").prop("disabled", ts5.length >= maxRes);
+          let allowTS1 = ts1.length >= maxRes || blockedTs1.length > 0;
+          let allowTS2 = ts2.length >= maxRes || blockedTs2.length > 0;
+          let allowTS3 = ts3.length >= maxRes || blockedTs3.length > 0;
+          let allowTS4 = ts4.length >= maxRes || blockedTs4.length > 0;
+          let allowTS5 = ts5.length >= maxRes || blockedTs5.length > 0;
+          
+          $("#11to1230").prop("disabled", allowTS1);
+          $("#1to230").prop("disabled", allowTS2);
+          $("#3to430").prop("disabled", allowTS3);
+          $("#5to630").prop("disabled", allowTS4);
+          $("#7to830").prop("disabled", allowTS5);
         }
         getReservationForDateTimeRange(selected.toISOString(), $("input:radio[name=reservationType]:checked").val(), callback);
       }
@@ -758,7 +766,7 @@
 
     <div style="text-align: center">
       <iframe src="https://calendar.google.com/calendar/embed?height=600&amp;wkst=1&amp;bgcolor=%23ffffff&amp;ctz=America%2FLos_Angeles&amp;src=bHNzbW5zY3I4YTQ5YmNnNTFrbnZ0Z28yMzRAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%233F51B5&amp;mode=WEEK" 
-      style="border:solid 1px #777; margin: 50px; width: 80%; height: 30%" frameborder="0" scrolling="no">
+      style="border:solid 1px #777; margin: 50px; width: 80%; height: 50%" frameborder="0" scrolling="no">
       </iframe>
     </div>
 
