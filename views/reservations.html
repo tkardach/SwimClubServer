@@ -317,6 +317,10 @@
         cursor: pointer;
       }
 
+      .navOption {
+        cursor: pointer;
+      }
+
       .expand-button {
         background-color: white;
         border-color: gray;
@@ -349,6 +353,7 @@
       const FAMILY_RESERVATIONS_API = CALENDAR_API + "family/";
       const LAP_RESERVATIONS_API = CALENDAR_API + "lap/";
       const USER_API = API_URL + "users/";
+      const ISSUE_API = API_URL + "issues/";
 
       // Variables
       var sessionExists;
@@ -455,6 +460,32 @@
             return callback(false, JSON.parse(this.responseText));
           callback(true, this.responseText);
         }
+      }
+
+      function postReportIssue(desc, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
+            );
+          }
+        };
+
+        xhr.open("POST", ISSUE_API, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(JSON.stringify(desc));
+        document.getElementById("reportIssueResults").innerHTML = "Sending Request. Please Wait...";
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, JSON.parse(this.responseText));
+          callback(true, this.responseText);
+        }
+
       }
 
       function postNewAccount(creds, callback) {
@@ -749,16 +780,19 @@
         </ul>
         <ul class="navbar-nav ml-auto">
           <li class="nav-item userLoggedIn navbar-right">
-            <a class="nav-link" id="eventsButton" onclick="openManageEventsModal()">Manage Events</a>
+            <a class="nav-link" id="eventsButtonNav" onclick="openManageEventsModal()">Manage Events</a>
           </li>
           <li class="nav-item userLoggedIn navbar-right">
-            <a class="nav-link" id="logoutButton" onclick="logout()">Logout</a>
+            <a class="nav-link" id="logoutButtonNav" onclick="logout()">Logout</a>
           </li>
           <li class="nav-item userLoggedOut navbar-right">
-            <a class="nav-link" id="loginButton" onclick="openLogin()">Login</a>
+            <a class="nav-link" id="loginButtonNav" onclick="openLogin()">Login</a>
           </li>
           <li class="nav-item userLoggedOut navbar-right">
-            <a class="nav-link" id="createAccountButton" onclick="openCreateAccount()">Create Account</a>
+            <a class="nav-link" id="createAccountButtonNav" onclick="openCreateAccount()">Create Account</a>
+          </li>
+          <li class="nav-item navOption navbar-right">
+            <a class="nav-link" id="reportIssueButtonNav" onclick="openReportIssue()">Report an Issue</a>
           </li>
         </ul>
       </div>
@@ -780,6 +814,7 @@
       <span class="fake-link userLoggedIn" id="logoutButton" onclick="logout()">Logout</span>
       <span class="fake-link userLoggedOut" id="loginButton" onclick="openLogin()">Login</span>
       <span class="fake-link userLoggedOut" id="createAccountButton" onclick="openCreateAccount()">Create Account</span>
+      <span class="fake-link" id="reportIssueButton" onclick="openReportIssue()">Report an Issue</span>
     </div>
 
     <div class="reservation-div">
@@ -879,6 +914,17 @@
       </div>
     </div>
  
+    <div id="reportIssueModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span id="closeIssues" class="close">&times;</span>
+        <h2 style="margin: 0 auto;">Report an Issue</h2><br>
+        <p class="medium-font">Enter the issue description here:</p>
+        <textarea id="reportIssueTextArea" rows="4" cols="50"></textarea><br>
+        <input class="medium-font" type="button" value="Submit" onclick="reportIssueEvent()">
+        <p class="medium-font" id="reportIssueResults"></p>
+      </div>
+    </div>
  
     <div id="createAccountModal" class="modal">
       <!-- Modal content -->
@@ -922,6 +968,7 @@
       var forgotPasswordModal = document.getElementById("forgotPasswordModal");
       var createAccountModal = document.getElementById("createAccountModal");
       var manageEventsModal = document.getElementById("manageEventsModal");
+      var reportIssueModal = document.getElementById("reportIssueModal");
 
       // Get the <span> element that closes the modals
       var resSpan = document.getElementById("closeRes");
@@ -930,6 +977,7 @@
       var accSpan = document.getElementById("closeAccount");
       var forgotSpan = document.getElementById("closeForgot");
       var eventsSpan = document.getElementById("closeEvents");
+      var issueSpan = document.getElementById("closeIssues");
 
       // Open modals
       function logout() {
@@ -944,9 +992,20 @@
 
       // Open/Close modal operations
 
+      function openReportIssue() {
+        reportIssueModal.style.display = "block";
+        loginModal.style.display = "none";
+        manageEventsModal.style.display = "none";
+        createAccountModal.style.display = "none";
+        forgotPasswordModal.style.display = "none";
+        resModal.style.display = "none";
+        resConfirmModal.style.display = "none";
+      }
+
       function openLogin() {
         document.getElementById("loginResults").innerHTML = "";
         loginModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         manageEventsModal.style.display = "none";
         createAccountModal.style.display = "none";
         forgotPasswordModal.style.display = "none";
@@ -957,6 +1016,7 @@
       function openCreateAccount() {
         document.getElementById("accountResults").innerHTML = "";
         createAccountModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         manageEventsModal.style.display = "none";
         loginModal.style.display = "none";
         forgotPasswordModal.style.display = "none";
@@ -967,6 +1027,7 @@
       function openForgotPassword() {
         document.getElementById("forgotResults").innerHTML = "";
         forgotPasswordModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         manageEventsModal.style.display = "none";
         loginModal.style.display = "none";
         createAccountModal.style.display = "none";
@@ -978,6 +1039,7 @@
         document.getElementById("resResults").innerHTML = "";
         document.getElementById("resManageEventsButton").style.display = "none";
         resModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         manageEventsModal.style.display = "none";
         loginModal.style.display = "none";
         createAccountModal.style.display = "none";
@@ -987,6 +1049,7 @@
 
       function openReservationConfirmedModal() {
         resConfirmModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         resModal.style.display = "none";
         manageEventsModal.style.display = "none";
         loginModal.style.display = "none";
@@ -1003,6 +1066,7 @@
         document.getElementById("manageEventsResults").innerHTML = "";
         document.getElementById("manageEventsLoading").innerHTML = "Loading your events, please wait..."
         manageEventsModal.style.display = "block";
+        reportIssueModal.style.display = "none";
         resModal.style.display = "none";
         loginModal.style.display = "none";
         createAccountModal.style.display = "none";
@@ -1081,6 +1145,8 @@
         loginModal.style.display = 'none';
       }
 
+
+
       // Close buttons
       resSpan.onclick = function() { 
         resModal.style.display = 'none';
@@ -1099,6 +1165,9 @@
       }
       eventsSpan.onclick = function() { 
         manageEventsModal.style.display = 'none';
+      }
+      issueSpan.onclick = function() {
+        reportIssueModal.style.display = 'none';
       }
 
       // When the user clicks anywhere outside of the modal, close it
@@ -1258,6 +1327,29 @@
         }
 
         postForgotPassword(forgotCreds, callback);
+      }
+
+      function reportIssueEvent() {
+        document.getElementById("reportIssueResults").innerHTML = "";
+        var desc = document.getElementById("reportIssueTextArea").value;
+
+        if (desc === '')
+          return document.getElementById("reportIssueResults").innerHTML = "You must enter a description to report an issue"
+        
+        const content = {
+          description: desc
+        }
+
+        const callback = (success, data) => {
+          if (!success)
+            document.getElementById("reportIssueResults").innerHTML = data.message;
+          else {
+            document.getElementById("reportIssueResults").innerHTML = data
+            setTimeout(() => {reportIssueModal.style.display = "none"}, 1000);
+          }
+        }
+
+        postReportIssue(content, callback);
       }
 
       function createAccountEvent() {

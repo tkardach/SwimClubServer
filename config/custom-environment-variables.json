@@ -9,5 +9,6 @@
   "gmailAccount": "swimClubEmail",
   "gmailPass": "swimClubPass",
   "port": "serverPort",
-  "ipEmail": "ipChangeEmail"
+  "ipEmail": "ipChangeEmail",
+  "issuesEmail": "issuesEmailRecp"
 }

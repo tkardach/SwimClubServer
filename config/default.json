@@ -10,5 +10,6 @@
   "sheetAPIKey": "",
   "serverKey": "",
   "serverCert": "",
-  "ipEmail": ""
+  "ipEmail": "",
+  "issuesEmail": ""
 }

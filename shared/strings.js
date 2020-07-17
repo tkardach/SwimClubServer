@@ -26,6 +26,9 @@ This link will expire in 1 hour. If you did not request this, please ignore this
       ResetCompleteBody: `
 This is a confirmation that the password for your account {0} has been successfully changed.
       `
+    },
+    Issue: {
+      Subject: '***Reservation System Issue Reported***'
     }
   },
   Member: {
