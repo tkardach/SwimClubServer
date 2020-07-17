@@ -32,7 +32,8 @@ async function getEventsForDate(date) {
             auth: jwtClient,
             calendarId: config.get('calendarId'),
             timeMin: startDate,
-            timeMax: endDate
+            timeMax: endDate,
+            maxResults: 1000
         });
         return result.data.items;
     } catch (err) {
@@ -58,7 +59,8 @@ async function getEventsForDateTime(startDate, endDate) {
             auth: jwtClient,
             calendarId: config.get('calendarId'),
             timeMin: startDate,
-            timeMax: endDate
+            timeMax: endDate,
+            maxResults: 1000
         });
     
         return result.data.items;
@@ -98,7 +100,8 @@ async function getEventsForDateAndTime(
             auth: jwtClient,
             calendarId: config.get('calendarId'),
             timeMin: newStart,
-            timeMax: newEnd
+            timeMax: newEnd,
+            maxResults: 1000
         });
     
         return result.data.items;
@@ -129,7 +132,8 @@ async function getEventsForUserId(id){
         const result = await calendar.events.list({
             auth: jwtClient,
             calendarId: config.get('calendarId'),
-            timeMin: date
+            timeMin: date,
+            maxResults: 1000
         });
     
         const events = result.data.items;
