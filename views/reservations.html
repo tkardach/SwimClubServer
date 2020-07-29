@@ -17,7 +17,7 @@
 
       .ui-datepicker-calendar tbody td > a.hover-calendar-cell {
         border: 1px solid #074e91;
-        background: #5bacf7 url(images/ui-bg_glass_15_5bacf7_1x400.png) 70% 50% repeat-x;
+        background: #5bacf7 70% 50% repeat-x;
         font-weight: normal;
         color: #1a1a1a;
         text-align: center;
@@ -321,6 +321,12 @@
         cursor: pointer;
       }
 
+      .loading {
+        height: 500px;
+        text-align: center;
+        vertical-align: center;
+      }
+
       .expand-button {
         background-color: white;
         border-color: gray;
@@ -348,7 +354,8 @@
     <script>
       // Constants
       const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const API_URL = "https://api.saratogaswimclub.com/api/";
+      const API_URL = "http://localhost:9507/api/";
+      const SCHEDULE_API = API_URL + "schedules/";
       const CALENDAR_API = API_URL + "reservations/";
       const FAMILY_RESERVATIONS_API = CALENDAR_API + "family/";
       const LAP_RESERVATIONS_API = CALENDAR_API + "lap/";
@@ -376,6 +383,29 @@
           }
         };
         xhr.open("GET", USER_API + 'me', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send();
+      
+        xhr.onload = function() {
+          if (this.status !== 200)
+            return callback(false, `Status ${this.status} received:\nReason: ${this.responseText}`);
+          callback(true, JSON.parse(this.responseText));
+        }
+      }
+
+      function getTimeslotsForDate(date, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 0) {
+            callback(false, 
+            `
+            Connection to server refused, please email the board board@saratogaswim.com
+            `
+            );
+          }
+        };
+        xhr.open("GET", SCHEDULE_API + `timeslots/${date}`, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.withCredentials = true;
         xhr.send();
@@ -601,7 +631,7 @@
 
       function reservationTypeChanged(radio) {
         if (selectedDate !== null)
-          showTimeSlots(selectedDate);
+          showTimeSlotsNew(selectedDate);
       }
 
       // Utility Methods
@@ -630,21 +660,6 @@
 
         let resType = $("input:radio[name=reservationType]:checked").val();
         document.getElementById("timeslots").className =  resType;
-
-        if (resType === 'family') {
-          document.getElementById("11to1230").innerHTML= "11:00 am to 12:30 pm";
-          document.getElementById("1to230").innerHTML = "1:00 pm to 2:30 pm";
-          document.getElementById("3to430").innerHTML = "3:00 pm to 4:30 pm";
-          document.getElementById("5to630").innerHTML = "5:00 pm to 6:30 pm";
-          document.getElementById("7to830").style.display = "block";
-          document.getElementById("7to830").innerHTML = "7:00 pm to 8:30 pm";
-        } else {
-          document.getElementById("11to1230").innerHTML= "12:30 pm to 1:00 pm";
-          document.getElementById("1to230").innerHTML = "2:30 pm to 3:00 pm";
-          document.getElementById("3to430").innerHTML = "4:30 pm to 5:00 pm";
-          document.getElementById("5to630").innerHTML = "6:30 pm to 7:00 pm";
-          document.getElementById("7to830").style.display = "none";
-        }
       }
 
       function showTimeSlots(date) {
@@ -749,13 +764,129 @@
         getReservationForDateTimeRange(selected.toISOString(), $("input:radio[name=reservationType]:checked").val(), callback);
       }
 
+
+      function showTimeSlotsNew(date) {
+        document.getElementById("reservationMessage").innerHTML = "";
+        document.getElementById("loadingMessage").style.display = "block";
+        hideAllTimeSlots();
+        $("#timeslots").css("visibility", "visible");
+
+        var today = new Date();
+        var selected = new Date(date);
+        
+        today.setHours(0,0,0,0);
+        selected.setHours(0,0,0,0);
+
+        // Do not allow timeslots after this week        
+        let offset = 0;
+
+        let now = new Date();
+        if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
+          offset = 7;
+
+        let thisWeekEnd = new Date();
+        if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
+        else
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
+
+
+        if (thisWeekEnd - selected < 0) {
+          document.getElementById("loadingMessage").style.display = "none";
+          return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
+        }
+        
+        document.getElementById("timeslots").innerHTML = ""
+        showAllTimeslots()
+
+        // If the date has already passed, disable all timeslots
+        if (selected < today) {
+          document.getElementById("loadingMessage").style.display = "none";
+          return;
+        }
+
+        const callback = (status, data) => {
+        document.getElementById("loadingMessage").style.display = "none";
+        document.getElementById("timeslots").innerHTML = ""
+          if (!status) {
+            document.getElementById("errorMessage").innerHTML = data;
+            return;
+          }
+
+          let resType = $("input:radio[name=reservationType]:checked").val();
+          let family = resType === 'family';
+
+          var timeslotsDiv = document.getElementById("timeslots");
+          
+          const timeslots = data
+
+          timeslots.forEach(timeslot => {
+            var timeslotDiv = document.createElement("div")
+            
+            var timeslotButton = document.createElement("button")
+            timeslotButton.className = "timeslot"
+            timeslotButton.disabled = !timeslot.vacant
+
+            startHour = parseInt((timeslot.start / 100) % 12);
+            if (startHour === 0)
+              startHour = "12"
+            startMinutes = timeslot.start % 100;
+            if (startMinutes === 0)
+              startMinutes = "00"
+            startPeriod = (timeslot.start / 100) >= 12 ? 'PM' : 'AM';
+            endHour = parseInt((timeslot.end / 100) % 12);
+            if (endHour === 0)
+              endHour = "12"
+            endMinutes = timeslot.end % 100;
+            if (endMinutes === 0)
+              endMinutes = "00"
+            endPeriod = (timeslot.end / 100) >= 12 ? 'PM' : 'AM';
+
+            timeslotButton.innerHTML = `${startHour}:${startMinutes} ${startPeriod} to ${endHour}:${endMinutes} ${endPeriod}`
+            
+            const timeslotClickCallback = () => {
+              timeslotButtonClicked(timeslot.start, timeslot.end, timeslotButton.innerHTML)
+            }
+            timeslotButton.onclick = timeslotClickCallback
+
+            timeslotDiv.appendChild(timeslotButton)
+
+            if (resType === timeslot.type)
+              timeslotsDiv.appendChild(timeslotDiv)
+          })
+          
+        }
+        getTimeslotsForDate(selected.toISOString(), callback)
+      }
+
+      function timeslotButtonClicked(start, end, desc) {
+        let resType = $("input:radio[name=reservationType]:checked").val();
+        let family = resType === 'family';
+        if (family)
+          document.getElementById("resSelect").style.display = "none";
+        else
+          document.getElementById("resSelect").style.display = "block";
+          
+        document.getElementById("resSummary").innerHTML = `${WEEKDAYS[selectedDate.getDay()]} ${selectedDate.toLocaleDateString()} from ${desc}`;
+
+        startTime = start;
+        endTime = end;
+
+        if (sessionExists)
+          openReservationModal();
+        else {
+          openReservationAfterLogin = true;
+          openLogin();
+        }
+      }
+
       $(function() {
         $('#datepicker').datepicker({
           inline: true,
           altField: "#datep",
           onSelect: function(date) {
             selectedDate = new Date(date);
-            showTimeSlots(date)
+            showTimeSlotsNew(date)
           }
         })
       });
@@ -831,22 +962,10 @@
         <div id="datepicker">
         </div>
         <div id="timeslots" style="visibility: hidden;">
-          <div>
-            <button class="timeslot" id="11to1230" onclick="timeslotClicked(this)"></button>
-          </div>
-          <div>
-            <button class="timeslot" id="1to230" onclick="timeslotClicked(this)">1:00 pm - 2:30 pm</button>
-          </div>
-          <div>
-            <button class="timeslot" id="3to430" onclick="timeslotClicked(this)">3:00 pm - 4:30 pm</button>
-          </div>
-          <div>
-            <button class="timeslot" id="5to630" onclick="timeslotClicked(this)">5:00 pm - 6:30 pm</button>
-          </div>
-          <div>
-            <button class="timeslot" id="7to830" onclick="timeslotClicked(this)">7:00 pm - 8:30 pm</button>
-          </div>
         </div>
+      </div>
+      <div class="loading">
+        <h2 id="loadingMessage" style="display: none;">Loading timeslots for this date...</h2>
       </div>
       <div id="reservation-picker-message">
         <br>
@@ -1271,7 +1390,7 @@
             let message = `Event for member ${data.lastName} has been created for ${date} at ${startTime} to ${endTime}.`;
             document.getElementById("resConfResults").innerHTML = message; 
             openReservationConfirmedModal();
-            showTimeSlots(selectedDate);
+            showTimeSlotsNew(selectedDate);
           }
         }
 
@@ -1386,7 +1505,7 @@
           document.getElementById("manageEventsResults").innerHTML = data;
         } else {
           if (selectedDate !== null)
-            showTimeSlots(selectedDate);
+            showTimeSlotsNew(selectedDate);
           document.getElementById("manageEventsResults").innerHTML = "Event has been removed...";
           setTimeout(() => {
             if (manageEventsModal.style.display !== "none")

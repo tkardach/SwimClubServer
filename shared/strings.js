@@ -57,6 +57,13 @@ This is a confirmation that the password for your account {0} has been successfu
     PostMaxReservationsMadeForWeek: `Member already has {0} or more {1} reservations for this week.`,
     PostMaxReservationsMadeForDay: `Member has already made {0} or more {1} reservations for {2}`
   },
+  Schedules: {
+    DateRequired: 'Date parameter is required',
+    InvalidDate: 'Date parameter {0} is not a valid date',
+    ScheduleExists: 'Schedule for {0} starting on {1} already exists',
+    ScheduleDoesNotExist: 'Schedule with that Id does not exist',
+    DayInvalid: 'Day number must be between 0 and 6 inclusively. {0} is invalid'
+  }
 }
 
 
@@ -69,6 +76,14 @@ const StringConstants = {
   Sheets: {
     Scopes: {
       SheetsR: 'https://www.googleapis.com/auth/spreadsheets.readonly'
+    }
+  },
+  Schedule: {
+    Types: {
+      Lap: 'lap',
+      Family: 'family',
+      Lessons: 'lessons',
+      Blocked: 'blocked'
     }
   }
 }

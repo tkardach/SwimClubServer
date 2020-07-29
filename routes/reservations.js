@@ -9,7 +9,6 @@ const {ValidationStrings} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
 const calendar = require('../modules/google/calendar');
 const sheets = require('../modules/google/sheets');
-const {Reservation} = require('../models/reservation');
 const _ = require('lodash');
 const { logError } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime} = require('../shared/utility');

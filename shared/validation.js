@@ -21,6 +21,11 @@ function validateEmail(mail) {
   return false;
 }
 
+function isValidDate(test) {
+  return !isNaN(Date.parse(test))
+}
+
 module.exports.validateEmail = validateEmail;
 module.exports.validateTime = validateTime;
 module.exports.validatePhoneNumber = validatePhoneNumber;
+module.exports.isValidDate = isValidDate;

@@ -15,6 +15,7 @@ const reservations = require('../routes/reservations');
 const accounts = require('../routes/accounts');
 const members = require('../routes/members');
 const issues = require('../routes/issues');
+const schedules = require('../routes/schedules');
 
 module.exports = function (app) {
   app.use('/api/reservations', reservations);
@@ -22,6 +23,7 @@ module.exports = function (app) {
   app.use('/api/members', members);
   app.use('/api/users', users);
   app.use('/api/issues', issues);
+  app.use('/api/schedules', schedules);
   app.use('/', home);
 
   // Error handling middleware
