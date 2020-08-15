@@ -1,11 +1,6 @@
-const {Member, validatePostMember, validatePutMember} = require('../models/member');
-const {admin, checkAdmin} = require('../middleware/admin');
-const {auth} = require('../middleware/auth');
+const {admin} = require('../middleware/admin');
 const express = require('express');
 const router = express.Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const {ValidationStrings} = require('../shared/strings');
-const {logInfo, logError} = require('../debug/logging');
 const sheets = require('../modules/google/sheets');
 const _ = require('lodash');
 

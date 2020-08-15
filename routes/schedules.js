@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {admin, checkAdmin} = require('../middleware/admin')
+const {admin} = require('../middleware/admin')
 const {Schedule, validatePostSchedule, validatePutSchedule} = require('../models/schedule')
 const {ValidationStrings} = require('../shared/strings');
 const {errorResponse} = require('../shared/utility');
 const {isValidDate} = require('../shared/validation')
 const {logError, logInfo} = require('../debug/logging')
 const {getTimeslotsForDate} = require('../shared/timeslots')
-const calendar = require('../modules/google/calendar')
 const _ = require('lodash');
 const validateObjectId = require('../middleware/validateObjectId');
 

@@ -3,7 +3,6 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const {admin, checkAdmin} = require('../middleware/admin');
 const {auth} = require('../middleware/auth');
 const {ValidationStrings} = require('../shared/strings');
 const crypto = require('crypto');

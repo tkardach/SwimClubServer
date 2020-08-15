@@ -1,8 +1,6 @@
 /**
  *  app.js establishes all things related to the backend and initializes them.
  */
-
-const {logger} = require('./debug/logging')
 const express = require('express');
 const app = express();
 const path = require('path');

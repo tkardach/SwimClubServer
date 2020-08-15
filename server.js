@@ -5,7 +5,6 @@
 const config = require('config')
 const {logger} = require('./debug/logging');
 const app = require('./app.js');
-const fs = require('fs');
 
 // Make sure jwtPrivateKey is defined, necessary 
 // for user identification and security

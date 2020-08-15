@@ -1,15 +1,12 @@
 require('../shared/extensions');
-const {admin, checkAdmin} = require('../middleware/admin');
-const {auth} = require('../middleware/auth');
+const {checkAdmin} = require('../middleware/admin');
 const Joi = require("joi");
 const express = require('express');
 const router = express.Router();
-const validateObjectId = require('../middleware/validateObjectId');
 const {ValidationStrings, StringConstants} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
 const calendar = require('../modules/google/calendar');
 const sheets = require('../modules/google/sheets');
-const {Schedule} = require('../models/schedule');
 const _ = require('lodash');
 const { logError } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime} = require('../shared/utility');
