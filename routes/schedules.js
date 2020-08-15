@@ -2,13 +2,15 @@ const express = require('express');
 const router = express.Router();
 const {admin, checkAdmin} = require('../middleware/admin')
 const {Schedule, validatePostSchedule, validatePutSchedule} = require('../models/schedule')
-const {ValidationStrings, StringConstants} = require('../shared/strings')
-const {errorResponse, datetimeToNumberTime} = require('../shared/utility');
+const {ValidationStrings} = require('../shared/strings');
+const {errorResponse} = require('../shared/utility');
 const {isValidDate} = require('../shared/validation')
 const {logError, logInfo} = require('../debug/logging')
+const {getTimeslotsForDate} = require('../shared/timeslots')
 const calendar = require('../modules/google/calendar')
 const _ = require('lodash');
 const validateObjectId = require('../middleware/validateObjectId');
+
 
 
 router.get('/', async (req, res) => {
@@ -52,37 +54,8 @@ router.get('/timeslots/:date', async (req, res) => {
   if (!isValidDate(req.params.date))
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.InvalidDate.format(req.params.date)))
 
-
   let date = new Date(req.params.date)
-  const schedule = await Schedule.scheduleOn(date).lean();
-
-  if (!schedule)
-    return res.status(200).send([]);
-
-  let timeslots = schedule.timeslots;
-
-  const eventsOnDate = await calendar.getEventsForDate(date);
-
-  timeslots.forEach(function(timeslot) {
-    timeslot.vacant = true
-    // Find all events matching this start and end time
-    let filtered = eventsOnDate.filter(event => 
-      datetimeToNumberTime(event.start.dateTime) == timeslot.start &&
-      datetimeToNumberTime(event.end.dateTime) == timeslot.end)
-
-    // Find all blocking events within this range
-    let blocked = eventsOnDate.filter(event => 
-      event.description === StringConstants.Schedule.Types.Blocked &&
-      (datetimeToNumberTime(event.start.dateTime) <= timeslot.start && 
-      datetimeToNumberTime(event.end.dateTime) >= timeslot.end))
-
-    // Set vacant to false if any of the given restrictions apply
-    if (filtered.length >= timeslot.maxOccupants || 
-        blocked.length > 0 ||
-        timeslot.type === StringConstants.Schedule.Types.Blocked ||
-        timeslot.type === StringConstants.Schedule.Types.Lessons)
-      timeslot.vacant = false
-  })
+  const timeslots = await getTimeslotsForDate(date)
 
   return res.status(200).send(timeslots)
 })

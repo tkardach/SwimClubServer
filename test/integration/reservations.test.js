@@ -2,10 +2,33 @@ const {User} = require('../../models/user');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcrypt');
-const {ValidationStrings} = require('../../shared/strings');
+const {StringConstants} = require('../../shared/strings');
 const calendar = require('../../modules/google/calendar');
 const sheets = require('../../modules/google/sheets');
 const {createUser} = require('../utility');
+const {Schedule} = require('../../models/schedule');
+
+async function setSchedule(family) {
+  let date = new Date();
+
+  let startDate = new Date(date);
+  startDate.setHours(0,0,0,0);
+  startDate.setDate(startDate.getDate() - 10);
+
+  let schedule = new Schedule({
+    day: date.getDay(),
+    startDate: startDate,
+    timeslots: [
+      {
+        type: family ? StringConstants.Schedule.Types.Family : StringConstants.Schedule.Types.Lap,
+        start: 800,
+        end: 930,
+        maxOccupants: family ? 4 : 2
+      }
+    ]
+  });
+  await schedule.save()
+}
 
 
 let server;
@@ -24,6 +47,7 @@ describe('/api/reservations', () => {
 
   afterEach(async () => {
     await User.deleteMany({});
+    await Schedule.deleteMany({});
     if (server) {
       await server.close();
     }
@@ -45,9 +69,12 @@ describe('/api/reservations', () => {
     let getEventsForDateSpy;
 
     beforeEach(async () => {
+      let date = new Date()
+      await setSchedule(true)
+
       payload = {
         memberEmail: userPayload.email,
-        date: new Date(),
+        date: date,
         start: 800,
         end: 930,
         type: 'family'
@@ -90,6 +117,7 @@ describe('/api/reservations', () => {
           }
         ]
       });
+
       getPaidMembersDictSpy = jest.spyOn(sheets, 'getAllPaidMembersDict').mockImplementation((lite) => {
         return {
           '2D': {
@@ -202,6 +230,13 @@ describe('/api/reservations', () => {
       const res = await exec();
       expect(res.status).toBe(400);
     });
+
+    it('should return 400 when there is no matching timeslot', async ()=> {
+      payload.start = 500
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
     
     it('FAMILY: should return 400 when member has already made a reservation on this day, using #certNumber', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
@@ -246,7 +281,7 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
     
-    it('FAMILY: should return 200 when member has already made 3 reservations in a week, but no reservations today', async ()=> {
+    it('FAMILY: should return 200 when member has already made 2 reservations in a week, but no reservations today', async ()=> {
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -400,6 +435,9 @@ describe('/api/reservations', () => {
     });
     
     it('LAP: should return 200 when member tries to make a second lap reservation for the day', async ()=> {
+      await Schedule.deleteMany({})
+      await setSchedule(false)
+
       let newDate = new Date(payload.date);
       newDate.setDate(newDate.getDate() + 1);
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
@@ -424,6 +462,9 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when member has already made 4+ reservations in a week', async ()=> {
+      await Schedule.deleteMany({})
+      await setSchedule(false)
+
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -481,6 +522,9 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when member has already made 2+ reservations in a day ', async ()=> {
+      await Schedule.deleteMany({})
+      await setSchedule(false)
+
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -523,6 +567,9 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when there are 2 or more reservations for a given timeslot', async ()=> {
+      await Schedule.deleteMany({})
+      await setSchedule(false)
+
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {

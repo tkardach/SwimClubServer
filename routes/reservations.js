@@ -5,13 +5,15 @@ const Joi = require("joi");
 const express = require('express');
 const router = express.Router();
 const validateObjectId = require('../middleware/validateObjectId');
-const {ValidationStrings} = require('../shared/strings');
+const {ValidationStrings, StringConstants} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
 const calendar = require('../modules/google/calendar');
 const sheets = require('../modules/google/sheets');
+const {Schedule} = require('../models/schedule');
 const _ = require('lodash');
 const { logError } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime} = require('../shared/utility');
+const {getTimeslotsForDate} = require('../shared/timeslots')
 const path = require('path');
 
 
@@ -100,11 +102,20 @@ router.post('/', async (req, res) => {
 
   const date = new Date(req.body.date);
 
-  const maxPerWeek = req.body.type === 'family' ? 3 : 4;
-  const maxPerDay = req.body.type === 'family' ? 1 : 2;
-  const familyType = req.body.type === 'family';
+  const datesTimeslots = await getTimeslotsForDate(date);
+  const timeslots = datesTimeslots.filter(timeslot => 
+    timeslot.start === req.body.start && timeslot.end === req.body.end);
+
+  if (timeslots.length === 0) 
+    return res.status(400).send(errorResponse(400, 'Timeslot with this start and end time does not exist.'))
+
+  const selectedTimeslot = timeslots[0]
+  const familyType = selectedTimeslot.type === StringConstants.Schedule.Types.Family;
+  const maxPerWeek = familyType ? 2 : 4;
+  const maxPerDay = familyType ? 1 : 2;
+
   const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;
-  const maxResPerSlot = req.body.type === 'family' ? 4 : 2;
+  const maxResPerSlot = selectedTimeslot.maxOccupants;
 
   // Check if the timeslots for this day are full
   const reservationsOnDay =  await calendar.getEventsForDateAndTime(date, date, req.body.start, req.body.end);
