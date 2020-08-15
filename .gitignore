@@ -9,3 +9,4 @@ tests_uncaughtEx.log
 temp
 ecosystem.config.js
 private/*
+.vscode

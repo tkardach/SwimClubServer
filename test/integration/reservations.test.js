@@ -8,28 +8,6 @@ const sheets = require('../../modules/google/sheets');
 const {createUser} = require('../utility');
 const {Schedule} = require('../../models/schedule');
 
-async function setSchedule(family) {
-  let date = new Date();
-
-  let startDate = new Date(date);
-  startDate.setHours(0,0,0,0);
-  startDate.setDate(startDate.getDate() - 10);
-
-  let schedule = new Schedule({
-    day: date.getDay(),
-    startDate: startDate,
-    timeslots: [
-      {
-        type: family ? StringConstants.Schedule.Types.Family : StringConstants.Schedule.Types.Lap,
-        start: 800,
-        end: 930,
-        maxOccupants: family ? 4 : 2
-      }
-    ]
-  });
-  await schedule.save()
-}
-
 
 let server;
 let session;
@@ -69,8 +47,31 @@ describe('/api/reservations', () => {
     let getEventsForDateSpy;
 
     beforeEach(async () => {
-      let date = new Date()
-      await setSchedule(true)
+      let date = new Date();
+    
+      let startDate = new Date(date);
+      startDate.setHours(0,0,0,0);
+      startDate.setDate(startDate.getDate() - 10);
+    
+      let schedule = new Schedule({
+        day: date.getDay(),
+        startDate: startDate,
+        timeslots: [
+          {
+            type: StringConstants.Schedule.Types.Family,
+            start: 800,
+            end: 930,
+            maxOccupants: 4
+          },
+          {
+            type: StringConstants.Schedule.Types.Lap,
+            start: 800,
+            end: 930,
+            maxOccupants: 2
+          }
+        ]
+      });
+      await schedule.save()
 
       payload = {
         memberEmail: userPayload.email,
@@ -231,8 +232,22 @@ describe('/api/reservations', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return 400 when there is no matching timeslot', async ()=> {
+    it('should return 400 when timeslot start time does not match', async ()=> {
       payload.start = 500
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when timeslot end time does not match', async ()=> {
+      payload.end = 1500
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when timeslot type does not match', async ()=> {
+      payload.type = "Test"
 
       const res = await exec();
       expect(res.status).toBe(400);
@@ -435,9 +450,6 @@ describe('/api/reservations', () => {
     });
     
     it('LAP: should return 200 when member tries to make a second lap reservation for the day', async ()=> {
-      await Schedule.deleteMany({})
-      await setSchedule(false)
-
       let newDate = new Date(payload.date);
       newDate.setDate(newDate.getDate() + 1);
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
@@ -462,9 +474,6 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when member has already made 4+ reservations in a week', async ()=> {
-      await Schedule.deleteMany({})
-      await setSchedule(false)
-
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -522,9 +531,6 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when member has already made 2+ reservations in a day ', async ()=> {
-      await Schedule.deleteMany({})
-      await setSchedule(false)
-
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {
@@ -567,9 +573,6 @@ describe('/api/reservations', () => {
     });
 
     it('LAP: should return 400 when there are 2 or more reservations for a given timeslot', async ()=> {
-      await Schedule.deleteMany({})
-      await setSchedule(false)
-
       getEventsForDateAndTimeSpy = jest.spyOn(calendar, 'getEventsForDateAndTime').mockImplementation((start, end, startTime, endTime) => {
         return [
           {

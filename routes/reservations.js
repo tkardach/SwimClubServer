@@ -104,7 +104,9 @@ router.post('/', async (req, res) => {
 
   const datesTimeslots = await getTimeslotsForDate(date);
   const timeslots = datesTimeslots.filter(timeslot => 
-    timeslot.start === req.body.start && timeslot.end === req.body.end);
+    timeslot.start === req.body.start && 
+    timeslot.end === req.body.end && 
+    timeslot.type === req.body.type);
 
   if (timeslots.length === 0) 
     return res.status(400).send(errorResponse(400, 'Timeslot with this start and end time does not exist.'))
