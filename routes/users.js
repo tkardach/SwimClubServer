@@ -92,7 +92,7 @@ router.post('/login', function(req, res, next) {
     req.logIn(user, function(err) {
       if (err) 
         return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));
-      return res.status(200).send('Login successful.');
+      return res.status(200).send(req.user);
     });
   })(req, res, next);
 });

@@ -47,6 +47,15 @@ scheduleSchema.statics.currentSchedule = function() {
     .where('startDate').lte(today);
 }
 
+scheduleSchema.statics.futureSchedules = function() {
+  let today = new Date()
+
+  return this
+    .find()
+    .sort('-startDate')
+    .where('startDate').gt(today);
+}
+
 scheduleSchema.statics.scheduleOn = function(paramDate) {
   let date = new Date(paramDate)
   return this

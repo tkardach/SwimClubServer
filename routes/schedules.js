@@ -99,6 +99,65 @@ router.post('/', [admin], async (req, res) => {
   }
 })
 
+router.post('/array', [admin], async (req, res) => {
+  if (!(req.body instanceof Array))
+    return res.status(400).send(errorResponse(400, 'Request body must be an array'));
+  
+  const schedules = []
+  for (let i=0; i<req.body.length; i++) {
+    const currSchedule = req.body[i];
+    console.log(currSchedule);
+    const { error } = validatePostSchedule(currSchedule);
+    if (error) return res.status(400).send(errorResponse(400, error.details[0].message));
+
+    const startDate = new Date(currSchedule.startDate);
+    startDate.setHours(0,0,0,0)
+  
+    if (currSchedule.day > 6 || currSchedule.day < 0)
+      return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.DayInvalid.format(currSchedule.day)))
+  
+    const query = await Schedule.find({
+      day: currSchedule.day,
+      startDate: startDate
+    });
+  
+    if (query.length > 0) 
+      return res.status(400).send(
+        errorResponse(400, ValidationStrings.Schedules.ScheduleExists.format(
+          currSchedule.day, 
+          currSchedule.startDate)))
+  
+          currSchedule.startDate = startDate;
+  
+    const schedule = new Schedule(_.pick(currSchedule, 
+      [
+        'day',
+        'startDate',
+        'timeslots'
+      ])
+    );
+
+    schedules.push(schedule);
+  }
+
+  failed = []
+  success = []
+  schedules.forEach(async (schedule) => {
+    try {
+      await schedule.save();
+      success.push(schedule);
+    } catch (err) {
+      logError(err, 'Failed to add schedule to database')
+      failed.push(schedule);
+    }
+  })
+
+  if (failed.length > 0)
+    return res.status(500).send(errorResponse(500, 'Failed to save all schedules to database'));
+  
+  return res.status(200).send(schedules)
+})
+
 router.put('/:id', [admin, validateObjectId], async (req, res) => {
   const { error } = validatePutSchedule(req.body);
   if (error) 

@@ -791,10 +791,10 @@
           thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
 
 
-        if (thisWeekEnd - selected < 0) {
-          document.getElementById("loadingMessage").style.display = "none";
-          return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
-        }
+        // if (thisWeekEnd - selected < 0) {
+        //   document.getElementById("loadingMessage").style.display = "none";
+        //   return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
+        // }
         
         document.getElementById("timeslots").innerHTML = ""
         showAllTimeslots()

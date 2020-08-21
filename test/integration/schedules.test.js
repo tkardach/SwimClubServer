@@ -617,7 +617,9 @@ describe('/api/schedules', () => {
             end: 1000,
             maxOccupants: 2
           }
-        ]
+        ],
+        maxFamilyReservations: 2,
+        maxLapReservations: 4
       });
 
       await schedule.save()
