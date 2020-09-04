@@ -17,8 +17,11 @@ async function getTimeslotsForDate(targetDate) {
 
   timeslots.forEach(function(timeslot) {
     timeslot.vacant = true
+    
     // Find all events matching this start and end time
     let filtered = eventsOnDate.filter(event => 
+      event.start !== undefined &&
+      event.end !== undefined &&
       datetimeToNumberTime(event.start.dateTime) == timeslot.start &&
       datetimeToNumberTime(event.end.dateTime) == timeslot.end)
 
