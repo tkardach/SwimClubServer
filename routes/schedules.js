@@ -50,10 +50,7 @@ router.get('/timeslots/:date', async (req, res) => {
   if (!req.params.date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.DateRequired))
   
-  if (!isValidDate(req.params.date))
-    return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.InvalidDate.format(req.params.date)))
-
-  let date = new Date(req.params.date)
+  let date = new Date(Number(req.params.date))
   const timeslots = await getTimeslotsForDate(date)
 
   return res.status(200).send(timeslots)

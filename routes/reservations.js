@@ -25,7 +25,7 @@ function validatePostReservation(res) {
     end: Joi.number().required(),
     attendees: Joi.array().items(Joi.string()).optional(),
     memberEmail: Joi.string().optional(),
-    numberSwimmers: Joi.number().optional()
+    numberSwimmers: Joi.number().required()
   };
 
   return Joi.validate(res, schema);
@@ -110,7 +110,7 @@ router.post('/', async (req, res) => {
 
   const selectedTimeslot = timeslots[0]
   const familyType = selectedTimeslot.type === StringConstants.Schedule.Types.Family;
-  const maxPerWeek = familyType ? 2 : 4;
+  const maxPerWeek = familyType ? 3 : 4;
   const maxPerDay = familyType ? 1 : 2;
 
   const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;

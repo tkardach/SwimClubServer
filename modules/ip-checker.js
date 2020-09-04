@@ -42,6 +42,8 @@ async function compareIp() {
   }
 }
 
-var job = schedule.scheduleJob('*/5 * * * *', compareIp);
+var job = null
+if (config.get('ipEmail')) 
+  job = schedule.scheduleJob('*/5 * * * *', compareIp);
 
 module.exports = job;

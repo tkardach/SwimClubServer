@@ -23,11 +23,17 @@ router.get('/', async (req, res) => {
 router.get('/session', async (req, res) => {
   if (req.user) {
     return res.status(200).send({
-      sessionExists : true 
+      sessionExists : true,
+      user: req.user
     });
   }
   return res.status(200).send({
-    sessionExists : false 
+    sessionExists : false,
+    user: {
+      email: '',
+      password: '',
+      isAdmin: false
+    }
   });
 });
 
