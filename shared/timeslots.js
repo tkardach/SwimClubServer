@@ -27,6 +27,8 @@ async function getTimeslotsForDate(targetDate) {
 
     // Find all blocking events within this range
     let blocked = eventsOnDate.filter(event => 
+      event.start !== undefined &&
+      event.end !== undefined &&
       event.description === StringConstants.Schedule.Types.Blocked &&
       (datetimeToNumberTime(event.start.dateTime) <= timeslot.start && 
       datetimeToNumberTime(event.end.dateTime) >= timeslot.end))
