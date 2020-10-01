@@ -1,4 +1,4 @@
-const {validateTime, validatePhoneNumber, validateEmail} = require('../../shared/validation');
+const {validateTime, validatePhoneNumber, validateEmail, getValidDate} = require('../../shared/validation');
 
 
 describe('validation', () => {
@@ -37,6 +37,27 @@ describe('validation', () => {
     
     it('should allow 0 time', () => {
       expect(validateTime(0)).toBe(true);
+    });
+  });
+  describe('validateTime', () => {
+    it('should allow valid date as number', () => {
+      const example = getValidDate(1577865600000);
+      expect(example instanceof Date).toBe(true);
+      expect(!isNaN(example.getMonth())).toBe(true);
+    });
+    it('should allow valid date as number string', () => {
+      const example = getValidDate('1577865600000');
+      expect(example instanceof Date).toBe(true);
+      expect(!isNaN(example.getMonth())).toBe(true);
+    });
+    it('should allow valid date as string', () => {
+      const example = getValidDate('1/1/2020');
+      expect(example instanceof Date).toBe(true);
+      expect(!isNaN(example.getMonth())).toBe(true);
+    });
+    it('should not allow invalid date as string', () => {
+      const example = getValidDate('not a date');
+      expect(example).toBe(null);
     });
   });
 });

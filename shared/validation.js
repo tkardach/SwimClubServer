@@ -21,11 +21,20 @@ function validateEmail(mail) {
   return false;
 }
 
-function isValidDate(test) {
-  return !isNaN(Date.parse(test))
+function getValidDate(test) {
+  if(isNaN(test)){ 
+    var dt=new Date(test);
+    if(isNaN(dt.getTime())){ 
+      return null;
+    }else{
+      return dt; 
+    }
+  } else{
+    return new Date(Number(test));
+  }
 }
 
 module.exports.validateEmail = validateEmail;
 module.exports.validateTime = validateTime;
 module.exports.validatePhoneNumber = validatePhoneNumber;
-module.exports.isValidDate = isValidDate;
+module.exports.getValidDate = getValidDate;

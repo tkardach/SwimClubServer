@@ -40,6 +40,7 @@ describe('/api/reservations', () => {
    **********************************************/
   describe('POST /', () => {
     let payload;
+    let closedDate;
     let postEventToCalendarSpy;
     let getMembersSpy;
     let getPaidMembersDictSpy;
@@ -73,9 +74,19 @@ describe('/api/reservations', () => {
       });
       await schedule.save()
 
+      closedDate = new Date('10/10/2020');
+      closedDate.setYear(date.getFullYear());
+      schedule = new Schedule({
+        day: closedDate.getDay(),
+        startDate: closedDate,
+        timeslots: []
+      });
+      await schedule.save()
+
       payload = {
         memberEmail: userPayload.email,
         date: date,
+        numberSwimmers: 1,
         start: 800,
         end: 930,
         type: 'family'
@@ -227,6 +238,13 @@ describe('/api/reservations', () => {
           }
         ]
       });
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+    
+    it('should return 400 if the date is during the closed time', async ()=> {
+      payload.date = closedDate;
 
       const res = await exec();
       expect(res.status).toBe(400);

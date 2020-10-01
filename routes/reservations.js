@@ -7,8 +7,9 @@ const {ValidationStrings, StringConstants} = require('../shared/strings');
 const {validateTime} = require('../shared/validation');
 const calendar = require('../modules/google/calendar');
 const sheets = require('../modules/google/sheets');
+const {sendEmail} = require('../modules/google/email');
 const _ = require('lodash');
-const { logError } = require('../debug/logging');
+const { logError, logInfo } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime} = require('../shared/utility');
 const {getTimeslotsForDate} = require('../shared/timeslots')
 const path = require('path');
@@ -99,6 +100,12 @@ router.post('/', async (req, res) => {
 
   const date = new Date(req.body.date);
 
+  let today = new Date();
+
+  const closeDate = new Date();
+  closeDate.setMonth(9);
+  closeDate.setDate(11);
+
   const datesTimeslots = await getTimeslotsForDate(date);
   const timeslots = datesTimeslots.filter(timeslot => 
     timeslot.start === req.body.start && 
@@ -148,8 +155,13 @@ router.post('/', async (req, res) => {
     thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
 
   // Check if reservation date is greater than end of this week
-  if (thisWeekEnd.compareDate(date) === -1)
-    return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Friday).'))
+  if (today.getMonth() !== 9) {
+    if (thisWeekEnd.compareDate(date) === -1)
+      return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Friday).'));
+  }
+  else if (closeDate.compareDate(date) === -1 || closeDate.compareDate(date) === 0) 
+    return res.status(400).send(errorResponse(400, 'The season is over, reservations are no longer available. See you next year!'));
+  
 
   // Validate the parameter time values
   if (!validateTime(req.body.start) || !validateTime(req.body.end))
@@ -192,7 +204,6 @@ router.post('/', async (req, res) => {
     (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
     event.description === req.body.type);
 
-  let today = new Date();
   let sameDayRes = memberResWeek.length === maxPerWeek && today.compareDate(date) === 0 && familyType;
   if (memberResWeek.length >= maxPerWeek && !sameDayRes) {
     let sameDayUsed = today.compareDate(date) === 0 && familyType ? ' And you have already used your same-day reservation for today.' : '';
@@ -259,12 +270,33 @@ router.post('/', async (req, res) => {
       return res.status(500).send(errorResponse(500,'Failed to post event to the calendar'));
 
     event.lastName = member.lastName;
+
+    logInfo(`${req.user.email} made ${extraRes + 1} ${req.body.type} reservation(s) for ${date.toLocaleDateString()}, from ${req.body.start} to ${req.body.end}`);
+
+    // sendEmail('Reservation Confirmation', emailBody(events), req.user.email);
+
     res.status(200).send(event);
   } catch (err) {
+    console.log(err)
     logError(err, 'Error thrown while trying to post event to calendar');
     return res.status(500).send(errorResponse(500,'Error thrown while trying to post event to calendar'));
   }
 });
+
+function emailBody(events) {
+  const numEvents = events.length;
+
+  let body = `This is a confirmation that you have made the following swim club reservations\n\t`;
+
+  for (let i=0; i<events.length; i++) {
+    const start = new Date(events[i].start.dateTime);
+    const end = new Date(events[i]);
+    
+    body += `${start.toLocaleDateString()} from ${start.toLocaleTimeString()} to ${end.toLocaleTimeString()}`;
+  }
+
+  return body;
+}
 
 router.put('/:id', [checkAdmin], async (req, res) => {
 });

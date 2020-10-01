@@ -4,7 +4,7 @@ const {admin} = require('../middleware/admin')
 const {Schedule, validatePostSchedule, validatePutSchedule} = require('../models/schedule')
 const {ValidationStrings} = require('../shared/strings');
 const {errorResponse} = require('../shared/utility');
-const {isValidDate} = require('../shared/validation')
+const {getValidDate} = require('../shared/validation')
 const {logError, logInfo} = require('../debug/logging')
 const {getTimeslotsForDate} = require('../shared/timeslots')
 const _ = require('lodash');
@@ -26,10 +26,11 @@ router.get('/date/:date', async (req, res) => {
   if (!req.params.date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.DateRequired))
   
-  if (!isValidDate(req.params.date))
+  const date = getValidDate(req.params.date);
+  if (!date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.InvalidDate.format(req.params.date)))
 
-  const schedule = await Schedule.scheduleOn(req.params.date);
+  const schedule = await Schedule.scheduleOn(date);
 
   return res.status(200).send(schedule)
 })
@@ -38,10 +39,11 @@ router.get('/period/:date', async (req, res) => {
   if (!req.params.date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.DateRequired))
   
-  if (!isValidDate(req.params.date))
+  const date = getValidDate(req.params.date);
+  if (!date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.InvalidDate.format(req.params.date)))
 
-  const schedules = await Schedule.schedulePeriod(req.params.date);
+  const schedules = await Schedule.schedulePeriod(date);
 
   return res.status(200).send(schedules)
 })
@@ -50,13 +52,17 @@ router.get('/timeslots/:date', async (req, res) => {
   if (!req.params.date)
     return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.DateRequired))
   
-  let date = new Date(Number(req.params.date))
+  const date = getValidDate(req.params.date);
+  if (!date)
+    return res.status(400).send(errorResponse(400, ValidationStrings.Schedules.InvalidDate.format(req.params.date)))
+
   const timeslots = await getTimeslotsForDate(date)
 
   return res.status(200).send(timeslots)
 })
 
 router.post('/', [admin], async (req, res) => {
+  
   const { error } = validatePostSchedule(req.body);
   if (error) return res.status(400).send(errorResponse(400, error.details[0].message));
 

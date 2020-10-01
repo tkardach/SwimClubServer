@@ -780,6 +780,11 @@
         // Do not allow timeslots after this week        
         let offset = 0;
 
+        const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+        const closeDate = new Date();
+        closeDate.setMonth(9);
+        closeDate.setDate(10);
+
         let now = new Date();
         if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
           offset = 7;
@@ -790,9 +795,19 @@
         else
           thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
 
-
+        let closeDateUsed = false;
+        if (closeDate - thisWeekEnd > 0) {
+          const diffDays = Math.round((closeDate - thisWeekEnd) / oneDay);
+          if (diffDays < 7) {
+            thisWeekEnd = closeDate;
+            closeDateUsed = true;
+          }
+        }
+        
         if (thisWeekEnd - selected < 0) {
           document.getElementById("loadingMessage").style.display = "none";
+          if (closeDateUsed)
+            return document.getElementById("reservationMessage").innerHTML = "Season is over, reservations are no longer available after this date. See you next year!";
           return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
         }
         
@@ -1420,7 +1435,7 @@
               openReservationAfterLogin = false;
               openReservationModal();
             }
-            document.getElementById("loginResults").innerHTML = data;
+            document.getElementById("loginResults").innerHTML = "Login Succcessful!";
             setTimeout(() => {loginModal.style.display = "none"}, 1000);
           }
         }

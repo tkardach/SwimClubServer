@@ -246,12 +246,13 @@ describe('/api/schedules', () => {
    **********************************************/
   describe('GET /timeslots/:date', () => {
     let day6;
+    let payloadDate;
     let getEventsForDateSpy;
 
     beforeEach(async () => {
       day6 = new Date()
       day6.setDate(day6.getDate() + (6 - day6.getDay()))
-
+      payloadDate = day6.getTime();
       getEventsForDateSpy = jest.spyOn(calendar, 'getEventsForDate').mockImplementation((date) => {
         return [
           {
@@ -292,7 +293,7 @@ describe('/api/schedules', () => {
 
     const exec = () => {
       return request(server)
-        .get('/api/schedules/timeslots/' + day6);
+        .get('/api/schedules/timeslots/' + payloadDate);
     }
 
     it('should return 200 on successful request', async () => {
@@ -386,7 +387,7 @@ describe('/api/schedules', () => {
     });
 
     it('should return 400 if date is not valid', async () => {
-      day6 = "abcdefg"
+      payloadDate = "abcdefg"
 
       const res = await exec();
       expect(res.status).toBe(400);
