@@ -104,7 +104,7 @@ router.post('/', async (req, res) => {
 
   const closeDate = new Date();
   closeDate.setMonth(9);
-  closeDate.setDate(11);
+  closeDate.setDate(18);
 
   const datesTimeslots = await getTimeslotsForDate(date);
   const timeslots = datesTimeslots.filter(timeslot => 
@@ -146,18 +146,18 @@ router.post('/', async (req, res) => {
   let offset = 0;
 
   let now = new Date();
-  if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
+  if (now.getDay() >= 4 && now.getHours() >= 18)
     offset = 7;
 
   if (thisWeekEnd.getDay() === 6) // weeks end on Thursday 6PM, find end of week relative to date
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 7 + offset);
   else
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
 
   // Check if reservation date is greater than end of this week
   if (today.getMonth() !== 9) {
     if (thisWeekEnd.compareDate(date) === -1)
-      return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Friday).'));
+      return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Saturday).'));
   }
   else if (closeDate.compareDate(date) === -1 || closeDate.compareDate(date) === 0) 
     return res.status(400).send(errorResponse(400, 'The season is over, reservations are no longer available. See you next year!'));

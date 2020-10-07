@@ -354,7 +354,7 @@
     <script>
       // Constants
       const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const API_URL = "https://api.saratogaswimclub.com/api/";
+      const API_URL = "http://localhost:9507/api/";
       const SCHEDULE_API = API_URL + "schedules/";
       const CALENDAR_API = API_URL + "reservations/";
       const FAMILY_RESERVATIONS_API = CALENDAR_API + "family/";
@@ -778,22 +778,22 @@
         selected.setHours(0,0,0,0);
 
         // Do not allow timeslots after this week        
+        let thisWeekEnd = new Date();
         let offset = 0;
 
         const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
         const closeDate = new Date();
         closeDate.setMonth(9);
-        closeDate.setDate(10);
+        closeDate.setDate(18);
 
         let now = new Date();
-        if ((now.getDay() === 4 && now.getHours() >= 18) || now.getDay() === 5)
+        if (now.getDay() >= 4 && now.getHours() >= 18)
           offset = 7;
 
-        let thisWeekEnd = new Date();
-        if (thisWeekEnd.getDay() === 6) // weeks end on friday, find end of week relative to date
-          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 + offset);
+        if (thisWeekEnd.getDay() === 6) // weeks end on Thursday 6PM, find end of week relative to date
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 7 + offset);
         else
-          thisWeekEnd.setDate(thisWeekEnd.getDate() + 5 - thisWeekEnd.getDay() + offset);
+          thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
 
         let closeDateUsed = false;
         if (closeDate - thisWeekEnd > 0) {
@@ -808,7 +808,7 @@
           document.getElementById("loadingMessage").style.display = "none";
           if (closeDateUsed)
             return document.getElementById("reservationMessage").innerHTML = "Season is over, reservations are no longer available after this date. See you next year!";
-          return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Friday)";
+          return document.getElementById("reservationMessage").innerHTML = "You may not make reservations after this week (ending on Saturday)";
         }
         
         document.getElementById("timeslots").innerHTML = ""
