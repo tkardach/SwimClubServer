@@ -3,16 +3,13 @@
  */
 
 const config = require('config')
-const {logger} = require('./debug/logging');
+const {logInfo, logError} = require('./debug/logging');
 const app = require('./app.js');
 
 // Make sure jwtPrivateKey is defined, necessary 
 // for user identification and security
 if (!config.get("jwtPrivateKey")) {
-  logger.log({
-    level: 'error',
-    message: 'jwtPrivateKey does not exist'
-  });
+  logError(new Error('jwtPrivateKey does not exist'), 'jwtPrivateKey does not exist')
   process.exit(1);
 }
 
@@ -21,11 +18,7 @@ const port = process.env.PORT || config.get('port');
 
 // Start and return the server object
 const server = app.listen(port, () => {
-  logger.log({
-    level: 'info',
-    message: `App listening on port ${port}`
-  });
+  logInfo(`App listening on port ${port}`);
 });
-
 
 module.exports = server;

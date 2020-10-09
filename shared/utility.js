@@ -16,6 +16,12 @@ function datetimeToNumberTime(datetime) {
   return (hours * 100) + minutes;
 }
 
+function isDevEnv() {
+  var env = process.env.NODE_ENV || 'development';
+  return env === "development";
+}
+
 module.exports.delay = delay;
 module.exports.errorResponse = errorResponse;
 module.exports.datetimeToNumberTime = datetimeToNumberTime;
+module.exports.isDevEnv = isDevEnv;

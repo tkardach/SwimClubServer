@@ -1,30 +1,57 @@
 const winston = require('winston');
+const {format} = winston;
+const path = require('path')
+
+const logFormat = format.printf(info => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`)
 
 // General logger
 const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.json(),
+  format: format.combine(
+    format.label({ label: path.basename(require.main.filename) }),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    // Format the metadata object
+    format.metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] })
+  ),
   transports: [
     //
     // - Write to all logs with level `info` and below to `logs_general.log` 
     // - Write all logs error (and below) to `logs_error.log`.
     //
-    new winston.transports.File({ filename: 'logs_error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs_general.log' })
+    new winston.transports.File({ 
+      filename: 'logs_error.log', 
+      level: 'error',
+      format: format.combine(
+        format.json()
+      )}),
+    new winston.transports.File({ 
+      filename: 'logs_general.log',
+      format: format.combine(
+        format.json()
+      ) })
   ]
 });
 
 // Security logger monitors all suspicious activity that could be a security threat
 const securityLogger = winston.createLogger({
   transports: [
-    new winston.transports.File({ filename: 'logs_security.log' })
+    new winston.transports.File({ 
+      filename: 'logs_security.log',
+      format: format.combine(
+        format.json()
+      ) })
   ]
 });
 
 // Uncaught exceptions loggers logs all uncaught exceptions
 const uncaughtExceptions = winston.createLogger({
   transports: [
-    new winston.transports.File({ filename: 'logs_uncaughtEx.log', level: 'error' })
+    new winston.transports.File({ 
+      filename: 'logs_uncaughtEx.log', 
+      level: 'error',
+      format: format.combine(
+        format.json()
+      ) })
   ]
 });
 
@@ -41,10 +68,16 @@ if (process.env.NODE_ENV === 'test') {
 // If we are not in production mode, add console logging
 } else if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
-    format: winston.format.simple()
+    format: format.combine(
+      format.colorize(),
+      logFormat
+    )
   }));
   uncaughtExceptions.add(new winston.transports.Console({
-    format: winston.format.simple()
+    format: format.combine(
+      format.colorize(),
+      logFormat
+    )
   }));
 }
 
@@ -52,16 +85,16 @@ function logError(err, desc) {
   if (err instanceof Error) {
     logger.log({
       level: 'error',
-      message: {
-        description: desc,
+      message: desc,
+      meta: {
         error: `${err.stack || err}`
       }
     })
   } else {
     logger.log({
       level: 'error',
-      message: {
-        description: desc,
+      message: desc,
+      meta: {
         error: err
       }
     })
