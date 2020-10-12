@@ -101,10 +101,11 @@ function logError(err, desc) {
   }
 }
 
-function logInfo(message) {
+function logInfo(message, meta={}) {
   logger.log({
     level: 'info',
-    message: message
+    message: message,
+    meta: meta
   })
 }
 

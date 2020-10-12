@@ -319,7 +319,9 @@ router.delete('/:id', async (req, res) => {
   if (!result)
     return res.status(500).send(errorResponse(400,'Failed to delete event'));
 
-  res.status(200).send("Successfully deleted event");
+  console.log(result)
+  logInfo(`User ${req.user.email} removed event.`);
+  res.status(200).send(result);
 });
 
 module.exports = router;
