@@ -9,7 +9,7 @@ const passport = require('passport');
 const config = require('config');
 const fs = require('fs');
 
-var staticRoot = __dirname + "/../client/dist/client/";
+var staticRoot = __dirname + "/dist/swimclub-client/";
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

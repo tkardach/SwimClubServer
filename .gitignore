@@ -10,3 +10,4 @@ temp
 ecosystem.config.js
 private/*
 .vscode
+dist
