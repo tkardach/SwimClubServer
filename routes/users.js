@@ -143,7 +143,7 @@ router.get('/signup/:error', function(req, res) {
 router.post('/signup', async (req, res) => {
   const { error } = validate(req.body);
   if (error) 
-    return res.status(400).send(error.details[0].message);
+    return res.status(400).send(errorResponse(400, error.details[0].message));
 
   req.body.username = req.body.username.toLowerCase();
 
@@ -172,7 +172,7 @@ router.post('/signup', async (req, res) => {
     req.logIn(user, function(err) {
       if (err) 
         return res.status(400).send(errorResponse(400, 'Unknown error occured'));
-      return res.status(200).send('User successfully created.');
+      return res.status(200).send(user);
     });
   });
 });
@@ -181,7 +181,7 @@ router.post('/signup', async (req, res) => {
 
 router.get('/logout', function(req, res){
   req.logout();
-  res.status(200).send('Logout successful.');
+  res.status(200).json('Logout successful.');
 });
 
 //#region  Forgot Email/Password
@@ -209,7 +209,7 @@ router.post('/forgot', async (req, res) => {
     if (!user) 
       return res.status(404).send(errorResponse(404, 'No account with that email address exists.'));
 
-    const url = 'https://' + req.headers.host + '/api/users/reset/' + token;
+    const url = 'https://' + req.headers.host + '/reset-password/' + token;
 
     var smtpTransport = nodemailer.createTransport({
       service: 'gmail',
@@ -228,7 +228,7 @@ router.post('/forgot', async (req, res) => {
 
     await smtpTransport.sendMail(mailOptions);
   
-    return res.status(200).send('Password validation has been sent');
+    return res.status(200).json('Email sent');
   } catch (err) {
     return res.status(500).send(errorResponse(400, `Error occured while sending email verification: ${err}`));
   }
@@ -273,7 +273,7 @@ router.post('/reset/:token', async (req, res, next) => {
     };
     smtpTransport.sendMail(mailOptions);
   
-    return res.status(200).send('Reset password was successful');
+    return res.status(200).json('Password Reset');
   } catch (err) {
     return res.status(500).send(errorResponse(500, 'Error occured during password reset '))
   }
