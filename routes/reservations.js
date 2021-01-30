@@ -133,6 +133,9 @@ router.post('/', async (req, res) => {
   if (reservationsOnDay.length >= maxResPerSlot)
     return res.status(400).send(errorResponse(400, 'All slots have been reserved for the specified time.'));
 
+  if (reservationsOnDay.length + extraRes >= maxResPerSlot)
+    return res.status(400).send(errorResponse(400, `Unable to make ${extraRes + 1} reservations, that would exceed the maximum capacity for this timeslot`));
+
   if (req.body.type === 'lap' && req.body.numberSwimmers === 0)
     return res.status(400).send(errorResponse(400, 'You must specify the number of swimmers for lap reservations'));
 
@@ -207,7 +210,7 @@ router.post('/', async (req, res) => {
     (event.summary === member.certificateNumber || event.summary === `#${member.certificateNumber}`) && 
     event.description === req.body.type);
 
-  if (!isDevEnv() && !req.user.isAdmin) {
+  if (!(isDevEnv() && req.user.isAdmin)) {
     let sameDayRes = memberResWeek.length === maxPerWeek && today.compareDate(date) === 0 && familyType;
     if (memberResWeek.length >= maxPerWeek && !sameDayRes) {
       let sameDayUsed = today.compareDate(date) === 0 && familyType ? ' And you have already used your same-day reservation for today.' : '';
@@ -216,7 +219,7 @@ router.post('/', async (req, res) => {
   }
 
   // If lap swimmer, and the extra reservation exceeds limit, send informative response
-  if (!isDevEnv() && !req.user.isAdmin) {
+  if (!(isDevEnv() && req.user.isAdmin)) {
     if (memberResWeek.length + extraRes >= maxPerWeek && !familyType) 
       return res.status(400).send(errorResponse(400,`Unable to make ${extraRes + 1} reservations for ${date.toLocaleDateString()}, this would exceed your lap reservation limit for the week.`))
   
@@ -242,9 +245,6 @@ router.post('/', async (req, res) => {
     if (backToBackRes.length > 0)
       return res.status(400).send(errorResponse(400,`We are restricting back-to-back family to lap type reservations. For more information, contact the board of directors.`))
   }
-
-  if (reservationsOnDay.length + extraRes >= maxResPerSlot)
-    return res.status(400).send(errorResponse(400, `Unable to make ${extraRes + 1} reservations, that would exceed the maximum capacity for this timeslot`));
   //#endregion
 
   // Create event and post it to the calendar

@@ -7,9 +7,7 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const config = require('config');
-const fs = require('fs');
 
-var staticRoot = __dirname + "/dist/swimclub-client/";
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -55,7 +53,8 @@ app.use(function(req, res, next) {
     'http://www.kardachkandles.com',
     'https://www.kardachkandles.com',
     'http://api.saratogaswimclub.com',
-    'https://api.saratogaswimclub.com'
+    'https://api.saratogaswimclub.com',
+    'https://tommy.kardach.com'
   ];
 
   let reg = new RegExp(regList.join("|"));
@@ -77,24 +76,6 @@ app.use(function(req, res, next) {
     next();
   }
 });
-
-
-app.use(function(req, res, next) {
-  //if the request is not html then move along
-  var accept = req.accepts('html', 'json', 'xml');
-  if (accept !== 'html') {
-      return next();
-  }
-
-  // if the request has a '.' assume that it's for a file, move along
-  var ext = path.extname(req.path);
-  if (ext !== '') {
-      return next();
-  }
-
-  fs.createReadStream(staticRoot + 'index.html').pipe(res);
-});
-app.use(express.static(staticRoot));
 
 // Initialize api routes
 require('./startup/routes')(app);
