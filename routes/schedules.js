@@ -11,7 +11,6 @@ const _ = require('lodash');
 const validateObjectId = require('../middleware/validateObjectId');
 
 
-
 router.get('/', async (req, res) => {
   const schedules = await Schedule.find();
   return res.status(200).send(schedules)
