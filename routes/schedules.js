@@ -108,7 +108,7 @@ router.post('/array', [admin], async (req, res) => {
   const schedules = []
   for (let i=0; i<req.body.length; i++) {
     const currSchedule = req.body[i];
-    console.log(currSchedule);
+    
     const { error } = validatePostSchedule(currSchedule);
     if (error) return res.status(400).send(errorResponse(400, error.details[0].message));
 

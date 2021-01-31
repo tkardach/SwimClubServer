@@ -7,6 +7,7 @@ const calendar = require('../../modules/google/calendar');
 const sheets = require('../../modules/google/sheets');
 const {createUser} = require('../utility');
 const {Schedule} = require('../../models/schedule');
+const {datetimeToNumberTime} = require('../../shared/utility');
 
 
 let server;
@@ -49,6 +50,7 @@ describe('/api/reservations', () => {
 
     beforeEach(async () => {
       let date = new Date();
+      date.setDate(date.getDate() + 1);
     
       let startDate = new Date(date);
       startDate.setHours(0,0,0,0);
@@ -186,6 +188,27 @@ describe('/api/reservations', () => {
 
     it('should return 400 when end missing', async ()=> {
       delete payload.end;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when selected date has already passed', async ()=> {
+      const newDate = new Date();
+      newDate.setDate(newDate.getDate() - 1);
+      payload.date = newDate;
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when selected time has already passed', async ()=> {
+      let tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const currentTime = datetimeToNumberTime();
+
+      payload.end = currentTime - 1000;
+      payload.end = payload.end < 0 ? 0 : payload.end;
 
       const res = await exec();
       expect(res.status).toBe(400);

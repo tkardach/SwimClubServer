@@ -100,8 +100,12 @@ router.post('/', async (req, res) => {
 
 
   const date = new Date(req.body.date);
-
   let today = new Date();
+
+  const compDates = date.compareDate(today);
+  if (compDates === -1 || (compDates === 0 && req.body.end < datetimeToNumberTime(today))) {
+    return res.status(400).send(errorResponse(400, 'You may not make reservations for timeslots that have already passed.'))
+  }
 
   const closeDate = new Date();
   closeDate.setMonth(9);
@@ -285,7 +289,6 @@ router.post('/', async (req, res) => {
 
     res.status(200).send(event);
   } catch (err) {
-    console.log(err)
     logError(err, 'Error thrown while trying to post event to calendar');
     return res.status(500).send(errorResponse(500,'Error thrown while trying to post event to calendar'));
   }
@@ -321,7 +324,6 @@ router.delete('/:id', async (req, res) => {
   if (!result)
     return res.status(500).send(errorResponse(400,'Failed to delete event'));
 
-  console.log(result)
   logInfo(`User ${req.user.email} removed event.`);
   res.status(200).send(result);
 });

@@ -1392,7 +1392,6 @@
 
         const callback = (success, data) => {
           if (!success) {
-            console.log(data);
             document.getElementById("resConfirmedTitle").innerHTML = "Reservation Not Made!";
             document.getElementById("resConfResults").innerHTML = data.message;
             document.getElementById("resManageEventsButton").style.display = "block";
