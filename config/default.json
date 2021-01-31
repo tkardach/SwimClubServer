@@ -1,6 +1,7 @@
 {
   "port": "",
   "db": "mongodb://localhost/swimclub",
+  "logDir": "",
   "jwtPrivateKey": "",
   "serviceEmail": "",
   "serviceKey": "",
