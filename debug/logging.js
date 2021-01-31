@@ -1,6 +1,7 @@
 const winston = require('winston');
 const {format} = winston;
-const path = require('path')
+const config = require('config');
+const path = require('path');
 
 const logFormat = format.printf(info => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`)
 
@@ -19,13 +20,13 @@ const logger = winston.createLogger({
     // - Write all logs error (and below) to `logs_error.log`.
     //
     new winston.transports.File({ 
-      filename: 'logs_error.log', 
+      filename: `${config.get('logDir')}/logs_error.log`, 
       level: 'error',
       format: format.combine(
         format.json()
       )}),
     new winston.transports.File({ 
-      filename: 'logs_general.log',
+      filename: `${config.get('logDir')}/logs_general.log`,
       format: format.combine(
         format.json()
       )}),
@@ -41,7 +42,7 @@ const logger = winston.createLogger({
 const securityLogger = winston.createLogger({
   transports: [
     new winston.transports.File({ 
-      filename: 'logs_security.log',
+      filename: `${config.get('logDir')}/logs_security.log`,
       format: format.combine(
         format.json()
       )}),
@@ -58,7 +59,7 @@ const securityLogger = winston.createLogger({
 const uncaughtExceptions = winston.createLogger({
   transports: [
     new winston.transports.File({ 
-      filename: 'logs_uncaughtEx.log', 
+      filename: `${config.get('logDir')}/logs_uncaughtEx.log`, 
       level: 'error',
       format: format.combine(
         format.json()

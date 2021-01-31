@@ -1,0 +1,16 @@
+{
+  "port": "",
+  "db": "mongodb://localhost/swimclub",
+  "logDir": "",
+  "jwtPrivateKey": "",
+  "serviceEmail": "",
+  "serviceKey": "",
+  "calendarId": "",
+  "scriptId": "",
+  "sheetId": "",
+  "sheetAPIKey": "",
+  "serverKey": "",
+  "serverCert": "",
+  "ipEmail": "",
+  "issuesEmail": ""
+}
