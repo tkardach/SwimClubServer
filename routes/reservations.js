@@ -161,7 +161,7 @@ router.post('/', async (req, res) => {
     thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
 
   // Check if reservation date is greater than end of this week
-  if (!isDevEnv() && !req.user.isAdmin) {
+  if (!(isDevEnv() && req.user.isAdmin)) {
     if (today.getMonth() !== 9) {
       if (thisWeekEnd.compareDate(date) === -1)
         return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Saturday).'));
