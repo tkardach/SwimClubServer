@@ -2,13 +2,16 @@ const {Schedule} = require('../models/schedule');
 const calendar = require('../modules/google/calendar')
 const {datetimeToNumberTime} = require('../shared/utility');
 const {StringConstants} = require('../shared/strings')
+require('./extensions');
 
 
 async function getTimeslotsForDate(targetDate) {
-  let date = new Date(targetDate)
+  let date = new Date(targetDate);
+  let today = new Date();
+
   const schedule = await Schedule.scheduleOn(date).lean();
 
-  if (!schedule)
+  if (!schedule || date.compareDate(today) === -1)
     return [];
 
   let timeslots = schedule.timeslots;
