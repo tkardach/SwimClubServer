@@ -28,7 +28,12 @@ const logger = winston.createLogger({
       filename: 'logs_general.log',
       format: format.combine(
         format.json()
-      ) })
+      )}),
+    new winston.transports.Console({
+      format: format.combine(
+        format.colorize(),
+        logFormat
+    )})
   ]
 });
 
@@ -39,7 +44,13 @@ const securityLogger = winston.createLogger({
       filename: 'logs_security.log',
       format: format.combine(
         format.json()
-      ) })
+      )}),
+    new winston.transports.Console({
+      format: format.combine(
+        format.colorize(),
+        logFormat
+      )
+    })
   ]
 });
 
@@ -51,7 +62,13 @@ const uncaughtExceptions = winston.createLogger({
       level: 'error',
       format: format.combine(
         format.json()
-      ) })
+      )}),
+    new winston.transports.Console({
+      format: format.combine(
+        format.colorize(),
+        logFormat
+      )
+    })
   ]
 });
 
@@ -64,22 +81,8 @@ if (process.env.NODE_ENV === 'test') {
   securityLogger.add(new winston.transports.File({ filename: 'tests_security.log' }));
   logger.add(new winston.transports.File({ filename: 'tests_general.log' }));
   uncaughtExceptions.add(new winston.transports.File({ filename: 'tests_uncaughtEx.log', level: 'error' }));
-
-// If we are not in production mode, add console logging
-} else if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: format.combine(
-      format.colorize(),
-      logFormat
-    )
-  }));
-  uncaughtExceptions.add(new winston.transports.Console({
-    format: format.combine(
-      format.colorize(),
-      logFormat
-    )
-  }));
 }
+
 
 function logError(err, desc) {
   if (err instanceof Error) {

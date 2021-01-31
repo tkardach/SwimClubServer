@@ -7,6 +7,9 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const config = require('config');
+const redis = require('redis');
+const RedisStore = require('connect-redis')(session);
+const redisClient = redis.createClient();
 
 
 function uuidv4() {
@@ -21,21 +24,29 @@ app.set('view engine', 'jade');
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(session({
+const sess = {
   secret: config.get('sessionSecret'),
   genid: function(req) {
     return uuidv4();
   },
   saveUninitialized: true,
   resave: false,
-  cookie: {
-    maxAge: 36000000,
-    httpOnly: true,
-    secure: false
-  }
-}));
+  store: new RedisStore({ client: redisClient, ttl: 86400 }),
+  cookie: {}
+}
+
+if (process.env.NODE_ENV === 'production') {
+  // If we use a proxy : app.set('trust proxy', 1) // trust first proxy
+  sess.cookie.httpOnly = true,
+  sess.cookie.secure= true,
+  sess.cookie.sameSite= true,
+  sess.cookie.maxAge= 600000
+}
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(session(sess));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
