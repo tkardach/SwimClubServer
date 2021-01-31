@@ -1,13 +1,8 @@
 node_modules
-logs_error.log
-logs_general.log
-logs_uncaughtEx.log
-logs_security.log
-tests_general.log
-tests_security.log
-tests_uncaughtEx.log
+*.log
 temp
 ecosystem.config.js
 private/*
 .vscode
 dist
+*.rdb

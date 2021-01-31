@@ -113,8 +113,10 @@ router.post('/', async (req, res) => {
     timeslot.end === req.body.end && 
     timeslot.type === req.body.type);
 
-  if (timeslots.length === 0) 
+  if (timeslots.length === 0) {
+    logInfo('Attempt to reserve non-existent timeslot', {body: req.body, timeslots: timeslots});
     return res.status(400).send(errorResponse(400, 'Timeslot with this start and end time does not exist.'))
+  }
 
   const selectedTimeslot = timeslots[0]
   const familyType = selectedTimeslot.type === StringConstants.Schedule.Types.Family;
