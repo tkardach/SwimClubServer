@@ -91,10 +91,10 @@ router.post('/login', function(req, res, next) {
     return res.status(400).send(errorResponse(400, "Member Email must not be empty."))
 
   passport.authenticate('local', function(err, user, info) {
-    if (err) 
-      return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));
     if (!user) 
       return res.status(404).send(errorResponse(404, ValidationStrings.User.UserDoesNotExist));
+    if (err) 
+      return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));
     req.logIn(user, function(err) {
       if (err) 
         return res.status(400).send(errorResponse(400, ValidationStrings.User.InvalidCredentials));

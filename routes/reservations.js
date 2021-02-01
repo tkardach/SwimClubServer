@@ -13,6 +13,7 @@ const { logError, logInfo } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime, isDevEnv} = require('../shared/utility');
 const {getTimeslotsForDate} = require('../shared/timeslots')
 const path = require('path');
+const config = require('config');
 
 
 // Validates a /POST request
@@ -40,6 +41,13 @@ function validateGetReservation(res) {
 
   return Joi.validate(res, schema);
 }
+
+router.get('/calendar-id', (req, res) => {
+  const calendarId = config.get('calendarId');
+  if (calendarId)
+    return res.status(200).json(calendarId);
+  res.status(404).send(errorResponse(404, 'Calendar ID could not be found'));
+})
 
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../views/reservations.html'));

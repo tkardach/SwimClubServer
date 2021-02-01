@@ -5,7 +5,9 @@
   "main": "index.js",
   "jest": {
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["./test/jest.setup.redis-mock.js"]
+    "setupFilesAfterEnv": [
+      "./test/jest.setup.redis-mock.js"
+    ]
   },
   "scripts": {
     "test": "jest --verbose --detectOpenHandles --runInBand --forceExit",
