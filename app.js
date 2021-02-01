@@ -36,7 +36,7 @@ const sess = {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  // If we use a proxy : app.set('trust proxy', 1) // trust first proxy
+  app.set('trust proxy', 1) // trust first proxy
   sess.cookie.httpOnly = true,
   sess.cookie.secure= true,
   sess.cookie.sameSite= true,
