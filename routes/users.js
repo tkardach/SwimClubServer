@@ -180,6 +180,7 @@ router.post('/signup', async (req, res) => {
 //#endregion
 
 router.get('/logout', function(req, res){
+  req.session.destroy();
   req.logout();
   res.status(200).json('Logout successful.');
 });

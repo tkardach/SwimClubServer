@@ -18,7 +18,7 @@ const port = process.env.PORT || config.get('port');
 
 // Start and return the server object
 const server = app.listen(port, () => {
-  logInfo(`App listening on port ${port}`);
+  logInfo(`${process.env.NODE_ENV} App listening on port ${port}`);
 });
 
 module.exports = server;
