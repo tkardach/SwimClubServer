@@ -1,5 +1,3 @@
-const config = require("config");
-const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const Joi = require("joi");
 const mongoose = require("mongoose");
@@ -60,7 +58,7 @@ const User = mongoose.model("User", userSchema);
 passport.use(new LocalStrategy(function(email, password, done) {
   User.findOne({ email: email.toLowerCase().trim() }, function(err, user) {
     if (err) return done(err);
-    if (!user) return done({ message: 'Incorrect email or password.', code: USER_ERRORS.INVALID_CREDENTIALS }, false);
+    if (!user) return done({ message: 'No account found with this email.', code: USER_ERRORS.USER_DNE }, false);
     user.comparePassword(password, function(err, isMatch) {
       if (isMatch) {
         return done(null, user);
