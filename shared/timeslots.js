@@ -5,9 +5,15 @@ const {StringConstants} = require('../shared/strings')
 require('./extensions');
 
 
+const WEEK_END_DAY = 6;
+const RESERVATION_START_TIME = 18;
+const RESERVATION_START_DAY = 4;
+
+
 async function getTimeslotsForDate(targetDate) {
   let date = new Date(targetDate);
   let today = new Date();
+  let weekEnd = getCurrentWeekEnd();
 
   const schedule = await Schedule.scheduleOn(date).lean();
 
@@ -40,11 +46,38 @@ async function getTimeslotsForDate(targetDate) {
     if (filtered.length >= timeslot.maxOccupants || 
         blocked.length > 0 ||
         timeslot.type === StringConstants.Schedule.Types.Blocked ||
-        timeslot.type === StringConstants.Schedule.Types.Lessons)
+        timeslot.type === StringConstants.Schedule.Types.Lessons ||
+        weekEnd.compareDate(date) === -1)
       timeslot.vacant = false
   })
 
   return timeslots;
 }
 
+function getCurrentWeekEnd() {
+  let thisWeekEnd = new Date();
+  let now = new Date();
+  let offset = 0;
+  
+  if (now.getDay() >= RESERVATION_START_DAY && now.getHours() >= RESERVATION_START_TIME)
+    offset = 7;
+
+  if (thisWeekEnd.getDay() === WEEK_END_DAY) // weeks end on Saturday, find end of week relative to date
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 7 + offset);
+  else
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
+
+  return thisWeekEnd;
+}
+
+function getTimeslotConfiguration() {
+  return {
+    weekEnd: WEEK_END_DAY,
+    resStartTime: RESERVATION_START_TIME,
+    resStartDay: RESERVATION_START_DAY
+  }
+}
+
 module.exports.getTimeslotsForDate = getTimeslotsForDate;
+module.exports.getTimeslotConfiguration = getTimeslotConfiguration;
+module.exports.getCurrentWeekEnd = getCurrentWeekEnd;

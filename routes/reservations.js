@@ -11,7 +11,7 @@ const {sendEmail} = require('../modules/google/email');
 const _ = require('lodash');
 const { logError, logInfo } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime, isDevEnv} = require('../shared/utility');
-const {getTimeslotsForDate} = require('../shared/timeslots')
+const {getTimeslotsForDate, getCurrentWeekEnd} = require('../shared/timeslots')
 const path = require('path');
 const config = require('config');
 
@@ -159,19 +159,8 @@ router.post('/', async (req, res) => {
 
   if (!req.body.memberEmail) req.body.memberEmail = req.user.email;
 
-  let thisWeekEnd = new Date();
-
-  let offset = 0;
-
-  let now = new Date();
-  if (now.getDay() >= 4 && now.getHours() >= 18)
-    offset = 7;
-
-  if (thisWeekEnd.getDay() === 6) // weeks end on Thursday 6PM, find end of week relative to date
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 7 + offset);
-  else
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
-
+  let thisWeekEnd = getCurrentWeekEnd();
+    
   // Check if reservation date is greater than end of this week
   if (!(isDevEnv() && req.user.isAdmin)) {
     if (today.getMonth() !== 9) {
