@@ -65,7 +65,9 @@ app.use(function(req, res, next) {
     'https://www.kardachkandles.com',
     'http://api.saratogaswimclub.com',
     'https://api.saratogaswimclub.com',
-    'https://tommy.kardach.com'
+    'https://tommy.kardach.com',
+    'http://dev.saratogaswimclub.com',
+    'https://dev.saratogaswimclub.com',
   ];
 
   let reg = new RegExp(regList.join("|"));
