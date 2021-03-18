@@ -165,7 +165,7 @@ router.post('/', async (req, res) => {
   if (!(isDevEnv() && req.user.isAdmin)) {
     if (today.getMonth() !== 9) {
       if (thisWeekEnd.compareDate(date) === -1)
-        return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Saturday).'));
+        return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Friday).'));
     }
     else if (closeDate.compareDate(date) === -1 || closeDate.compareDate(date) === 0) 
       return res.status(400).send(errorResponse(400, 'The season is over, reservations are no longer available. See you next year!'));
