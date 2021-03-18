@@ -62,10 +62,10 @@ function getCurrentWeekEnd() {
   if (now.getDay() >= RESERVATION_START_DAY && now.getHours() >= RESERVATION_START_TIME)
     offset = 7;
 
-  if (thisWeekEnd.getDay() === WEEK_END_DAY) // weeks end on Saturday, find end of week relative to date
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 7 + offset);
+  if (now.getDay() === WEEK_END_DAY) // find end of week relative to date
+    thisWeekEnd.setDate(now.getDate() + 7 + offset);
   else
-    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6 - thisWeekEnd.getDay() + offset);
+    thisWeekEnd.setDate(now.getDate() + WEEK_END_DAY - now.getDay() + offset);
 
   return thisWeekEnd;
 }
