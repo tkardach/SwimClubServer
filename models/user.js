@@ -91,7 +91,7 @@ function validateUser(user) {
     confirm: Joi.string().optional()
   };
 
-  return Joi.validate(user, schema);
+  return Joi.validate(user, schema, { allowUnknown: true });
 }
 
 const USER_ERRORS = {
