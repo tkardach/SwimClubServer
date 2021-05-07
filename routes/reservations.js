@@ -132,8 +132,17 @@ router.post('/', async (req, res) => {
 
   const selectedTimeslot = timeslots[0]
   const familyType = selectedTimeslot.type === StringConstants.Schedule.Types.Family;
+
+  // TODO : Find a configurable way to manage max reservations per week / day
   const maxPerWeek = familyType ? 3 : 4;
   const maxPerDay = familyType ? 1 : 2;
+
+  if (today.getMonth() === 5) {
+    maxPerWeek = 1;
+    maxPerDay = familyType ? 1 : 2;
+  }
+
+  // end TODO
 
   const extraRes = familyType ? 0 : req.body.numberSwimmers - 1;
   const maxResPerSlot = selectedTimeslot.maxOccupants;
