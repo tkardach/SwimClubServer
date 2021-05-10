@@ -277,7 +277,7 @@ async function getAllSheetsAccounts() {
         });
         return res.data.values;
     } catch (err) {
-        logError(err, `Failed to retrieve members from google sheet\n${err}`);
+        logError(err, `Failed to retrieve accounts from google sheet\n${err}`);
         return null;
     }
 }
@@ -292,6 +292,96 @@ async function getAllAccountsDict() {
 
 //#endregion
 
+//#region Over-Due Methods
+
+const OVERDUE_INDICES = {
+    MemberNumber: 2,
+    TotalOwed: 4,
+    StartUpFee: 5,
+    EquityShare: 6,
+    UnpaidCarryOver: 7,
+    MembershipDues: 8,
+    LateFee: 9,
+    WorkDayFee: 10,
+    GuestFee: 11,
+    NannyFee: 12,
+    AssessmentFee: 13,
+    MembershipType: 17
+}
+
+function generateFees(sheetsOverdue) {
+    return {
+        certificateNumber: sheetsOverdue[OVERDUE_INDICES.MemberNumber],
+        id: sheetsOverdue[OVERDUE_INDICES.MemberNumber] + sheetsOverdue[OVERDUE_INDICES.MembershipType],
+        totalOwed: sheetsOverdue[OVERDUE_INDICES.TotalOwed],
+        startupFee: sheetsOverdue[OVERDUE_INDICES.StartUpFee],
+        equityShare: sheetsOverdue[OVERDUE_INDICES.EquityShare],
+        unpaidCarryOver: sheetsOverdue[OVERDUE_INDICES.UnpaidCarryOver],
+        membershipDues: sheetsOverdue[OVERDUE_INDICES.MembershipDues],
+        lateFee: sheetsOverdue[OVERDUE_INDICES.LateFee],
+        workdayFee: sheetsOverdue[OVERDUE_INDICES.WorkDayFee],
+        guestFee: sheetsOverdue[OVERDUE_INDICES.GuestFee],
+        nannyFee: sheetsOverdue[OVERDUE_INDICES.NannyFee],
+        assessmentFee: sheetsOverdue[OVERDUE_INDICES.AssessmentFee]
+    }
+}
+
+
+function overdueAcceptable(fees) {
+    return  fees.lastName !== '' &&
+            isNaN(fees.lastName) &&
+            !isNaN(fees.certificateNumber);
+}
+
+function convertOverdue(sheetsOverdue) {
+    const fees = [];
+    sheetsOverdue.forEach(fee => {
+        const newFees = generateFees(fee);
+        if (overdueAcceptable(newFees))
+            fees.push(newFees);
+    });
+
+    return fees;
+}
+
+function convertOverdueDict(sheetsOverdue) {
+    const fees = {};
+    sheetsOverdue.forEach(fee => {
+        const newFees = generateFees(fee);
+        if (overdueAcceptable(newFees))
+            fees[newFees.id] = newFees;
+    });
+
+    return fees;
+}
+
+async function getAllSheetsOverdue() {
+    let jwtClient = await generateJwtClient(SCOPES);
+    const sheets = google.sheets({version: 'v4', jwtClient});
+
+    try {
+        const res = await sheets.spreadsheets.values.get({
+            spreadsheetId: config.get('sheetId'),
+            range: 'Over-Due!A4:R',
+            key: config.get('sheetAPIKey')
+        });
+        return res.data.values;
+    } catch (err) {
+        logError(err, `Failed to retrieve overdue from google sheet\n${err}`);
+        return null;
+    }
+}
+
+async function getAllOverdue() {
+    return convertOverdue(await sheets.getAllSheetsOverdue());
+}
+
+async function getAllOverdueDict() {
+    return convertOverdueDict(await sheets.getAllSheetsOverdue());
+}
+
+//#endregion
+
 const sheets = {
     getAllSheetsMembers,
     getAllMembers,
@@ -302,7 +392,11 @@ const sheets = {
     getAllAccounts,
     getAllAccountsDict,
     ACCOUNT_INDICES,
-    MEMBER_INDICES
+    MEMBER_INDICES,
+    OVERDUE_INDICES,
+    getAllSheetsOverdue,
+    getAllOverdue,
+    getAllOverdueDict
 };
 
 module.exports = sheets;
