@@ -130,9 +130,9 @@ router.post('/', async (req, res) => {
   const familyType = selectedTimeslot.type === StringConstants.Schedule.Types.Family;
 
   // TODO : Find a configurable way to manage max reservations per week / day
-  const maxPerWeek = familyType ? 3 : 4;
-  const maxPerDay = familyType ? 1 : 2;
-  const allowSameDay = true;
+  let maxPerWeek = familyType ? 3 : 4;
+  let maxPerDay = familyType ? 1 : 2;
+  let allowSameDay = true;
 
   if (today.getMonth() === 4) {
     maxPerWeek = 1;
