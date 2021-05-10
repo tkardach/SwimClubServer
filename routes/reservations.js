@@ -132,10 +132,11 @@ router.post('/', async (req, res) => {
   // TODO : Find a configurable way to manage max reservations per week / day
   const maxPerWeek = familyType ? 3 : 4;
   const maxPerDay = familyType ? 1 : 2;
+  const allowSameDay = true;
 
   if (today.getMonth() === 5) {
     maxPerWeek = 1;
-    maxPerDay = familyType ? 1 : 2;
+    allowSameDay = false;
   }
 
   // end TODO
@@ -220,8 +221,8 @@ router.post('/', async (req, res) => {
 
   if (!(isDevEnv() && req.user.isAdmin)) {
     let sameDayRes = memberResWeek.length === maxPerWeek && today.compareDate(date) === 0 && familyType;
-    if (memberResWeek.length >= maxPerWeek && !sameDayRes) {
-      let sameDayUsed = today.compareDate(date) === 0 && familyType ? ' And you have already used your same-day reservation for today.' : '';
+    if (memberResWeek.length >= maxPerWeek && !(sameDayRes && allowSameDay)) {
+      let sameDayUsed = (today.compareDate(date) === 0 && familyType && allowSameDay) ? ' And you have already used your same-day reservation for today.' : '';
       return res.status(400).send(errorResponse(400,ValidationStrings.Reservation.PostMaxReservationsMadeForWeek.format(maxPerWeek, req.body.type) + sameDayUsed));
     }
   }
