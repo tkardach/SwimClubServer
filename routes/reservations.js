@@ -134,7 +134,7 @@ router.post('/', async (req, res) => {
   const maxPerDay = familyType ? 1 : 2;
   const allowSameDay = true;
 
-  if (today.getMonth() === 5) {
+  if (today.getMonth() === 4) {
     maxPerWeek = 1;
     allowSameDay = false;
   }
