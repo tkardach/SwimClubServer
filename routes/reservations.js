@@ -49,10 +49,6 @@ router.get('/calendar-id', (req, res) => {
   res.status(404).send(errorResponse(404, 'Calendar ID could not be found'));
 })
 
-router.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../views/reservations.html'));
-})
-
 router.get('/:date', async (req, res) => {
   try {
     const result = await calendar.getEventsForDate(req.params.date);
