@@ -5,7 +5,7 @@ const {StringConstants} = require('../shared/strings')
 require('./extensions');
 
 
-const WEEK_END_DAY = 6;
+const WEEK_END_DAY = 5;
 const RESERVATION_START_TIME = 18;
 const RESERVATION_START_DAY = 4;
 
