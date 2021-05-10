@@ -11,7 +11,7 @@ const {sendEmail} = require('../modules/google/email');
 const _ = require('lodash');
 const { logError, logInfo } = require('../debug/logging');
 const {errorResponse, datetimeToNumberTime, isDevEnv} = require('../shared/utility');
-const {getTimeslotsForDate, getCurrentWeekEnd} = require('../shared/timeslots')
+const {getTimeslotsForDate, getCurrentWeekEnd, dateToWeekday} = require('../shared/timeslots')
 const path = require('path');
 const config = require('config');
 
@@ -172,7 +172,7 @@ router.post('/', async (req, res) => {
   if (!(isDevEnv() && req.user.isAdmin)) {
     if (today.getMonth() !== 9) {
       if (thisWeekEnd.compareDate(date) === -1)
-        return res.status(400).send(errorResponse(400, 'You may not make reservations after this week (ending on Friday).'));
+        return res.status(400).send(errorResponse(400, `You may not make reservations after this week (ending on ${dateToWeekday(thisWeekEnd.getDate())}).`));
     }
     else if (closeDate.compareDate(date) === -1 || closeDate.compareDate(date) === 0) 
       return res.status(400).send(errorResponse(400, 'The season is over, reservations are no longer available. See you next year!'));
