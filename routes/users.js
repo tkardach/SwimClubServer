@@ -57,13 +57,21 @@ async function generateUserInformation(user) {
 
   const member = members[0];
   const events = await calendar.getEventsForUserId(member.certificateNumber);
-  
+  const fees = await sheets.getAllOverdueDict();
+  const userFees = fees[member.id];
+
+  if (userFees) {
+    delete userFees.id;
+    delete userFees.certificateNumber;
+  }
+
   ret.user = {
     lastName: member.lastName,
     certificateNumber: member.certificateNumber
   }
 
   ret.events = events;
+  ret.fees = userFees;
   ret.status = 200;
 
   return ret;
