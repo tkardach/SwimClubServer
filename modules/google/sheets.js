@@ -4,6 +4,7 @@ const {generateJwtClient} = require('./general');
 const {logError} = require('../../debug/logging');
 const config = require('config');
 const _ = require('lodash');
+const {uuidv4} = require('../../shared/utility');
 
 
 // Initialize constants
@@ -164,7 +165,8 @@ async function getAllSheetsMembers() {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: config.get('sheetId'),
             range: 'Members!A2:S',
-            key: config.get('sheetAPIKey')
+            key: config.get('sheetAPIKey'),
+            quotaUser: uuidv4()
         });
 
         return res.data.values;
@@ -273,7 +275,8 @@ async function getAllSheetsAccounts() {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: config.get('sheetId'),
             range: 'Accounts!A4:AR',
-            key: config.get('sheetAPIKey')
+            key: config.get('sheetAPIKey'),
+            quotaUser: uuidv4()
         });
         return res.data.values;
     } catch (err) {
@@ -363,7 +366,8 @@ async function getAllSheetsOverdue() {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: config.get('sheetId'),
             range: 'Over-Due!A4:R',
-            key: config.get('sheetAPIKey')
+            key: config.get('sheetAPIKey'),
+            quotaUser: uuidv4()
         });
         return res.data.values;
     } catch (err) {

@@ -8,16 +8,10 @@ const session = require('express-session');
 const passport = require('passport');
 const config = require('config');
 const redis = require('redis');
+const {uuidv4} = require('./shared/utility');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 
-
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
