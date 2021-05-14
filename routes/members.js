@@ -25,6 +25,9 @@ router.get('/:id', [admin], async (req, res) => {
     return res.redirect('/api/members/paid-members');
   const members = await sheets.getAllMembersDict(false);
 
+  if (!members)
+    return res.status(500).send('There was an error gathering member information, please try again later');
+
   if (!(req.params.id in members))
     return res.status(404).send(errorResponse(404, `Member with id ${req.params.id} not found.`));
 

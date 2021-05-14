@@ -187,6 +187,9 @@ router.post('/', async (req, res) => {
   const allMembers = await sheets.getAllMembers(false);
   const paidMembers = await sheets.getAllPaidMembersDict(true);
 
+  if (!allMembers) 
+    return res.status(500).send(errorResponse(500, 'There was an issue gathering member information, please try again later'));
+
   // Check if member making reservation exists
   const members = allMembers.filter(member => 
     member.primaryEmail.toLowerCase() === req.body.memberEmail.toLowerCase() ||

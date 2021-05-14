@@ -48,6 +48,9 @@ async function generateUserInformation(user) {
 
   const allMembers = await sheets.getAllMembers(false);
 
+  if (!allMembers)
+    return errorResponse(500, 'There was an issue gathering member information, please try again later');
+
   // Check if member making reservation exists
   const members = allMembers.filter(member => 
     member.primaryEmail.toLowerCase() === user.email.toLowerCase() ||
@@ -163,6 +166,9 @@ router.post('/signup', async (req, res) => {
     return res.status(400).send(errorResponse(400, ValidationStrings.User.UserAlreadyExists));
 
   const allMembers = await sheets.getAllMembers(false);
+
+  if (!allMembers) 
+    return res.status(500).send(errorResponse(500, 'There was an error gathering member information, please try again later.'));
 
   // Check if member making reservation exists
   const member = allMembers.filter(member => 

@@ -180,6 +180,8 @@ async function getAllMembers(lite) {
     const sheetsMembers = await sheets.getAllSheetsMembers();
     const accountsDict = await sheets.getAllAccountsDict();
 
+    if (!accountsDict || !sheetsMembers) return null;
+
     const members = lite ? convertMembersLite(sheetsMembers) : 
                             convertMembers(sheetsMembers);
     return members.filter(member => member.id in accountsDict);
@@ -188,6 +190,8 @@ async function getAllMembers(lite) {
 async function getAllMembersDict(lite) {
     const sheetsMembers = await sheets.getAllSheetsMembers();
     const accountsDict = await sheets.getAllAccountsDict();
+
+    if (!accountsDict || !sheetsMembers) return null;
 
     const membersDict = lite ? convertMembersLiteDict(sheetsMembers) : 
                             convertMembersDict(sheetsMembers);
@@ -201,6 +205,8 @@ async function getAllPaidMembers(lite) {
     const members = await sheets.getAllMembers(lite);
     const accountsDict = await sheets.getAllAccountsDict();
 
+    if (!accountsDict || !members) return null;
+
     return members.filter(member => 
         accountsDict[member.id] && 
         accountsDict[member.id].eligibleToReserve === true);
@@ -209,6 +215,8 @@ async function getAllPaidMembers(lite) {
 async function getAllPaidMembersDict(lite) {
     const membersDict = await sheets.getAllMembersDict(lite);
     const accountsDict = await sheets.getAllAccountsDict();
+
+    if (!accountsDict || !membersDict) return null;
 
     return _.pickBy(membersDict, function(member, id) {
         return accountsDict[id] && accountsDict[id].eligibleToReserve === true;
@@ -286,11 +294,19 @@ async function getAllSheetsAccounts() {
 }
 
 async function getAllAccounts() {
-    return convertAccounts(await sheets.getAllSheetsAccounts());
+    const accountsSheets = await sheets.getAllSheetsAccounts();
+
+    if (!accountsSheets) return null;
+
+    return convertAccounts(accountsSheets);
 }
 
 async function getAllAccountsDict() {
-    return convertAccountsDict(await sheets.getAllSheetsAccounts());
+    const accountsSheets = await sheets.getAllSheetsAccounts();
+
+    if (!accountsSheets) return null;
+
+    return convertAccountsDict(accountsSheets);
 }
 
 //#endregion
