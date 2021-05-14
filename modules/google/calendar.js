@@ -1,5 +1,6 @@
 require('../../shared/extensions');
 const { StringConstants} = require('../../shared/strings');
+const { uuidv4} = require('../../shared/utility');
 const config = require('config');
 const {google, GoogleApis} = require('googleapis');
 const calendar = google.calendar('v3');
@@ -33,7 +34,8 @@ async function getEventsForDate(date) {
             calendarId: config.get('calendarId'),
             timeMin: startDate,
             timeMax: endDate,
-            maxResults: 1000
+            maxResults: 1000,
+            quotaUser: uuidv4()
         });
         return result.data.items;
     } catch (err) {
@@ -60,7 +62,8 @@ async function getEventsForDateTime(startDate, endDate) {
             calendarId: config.get('calendarId'),
             timeMin: startDate,
             timeMax: endDate,
-            maxResults: 1000
+            maxResults: 1000,
+            quotaUser: uuidv4()
         });
     
         return result.data.items;
@@ -101,7 +104,8 @@ async function getEventsForDateAndTime(
             calendarId: config.get('calendarId'),
             timeMin: newStart,
             timeMax: newEnd,
-            maxResults: 1000
+            maxResults: 1000,
+            quotaUser: uuidv4()
         });
     
         return result.data.items;
@@ -133,7 +137,8 @@ async function getEventsForUserId(id){
             auth: jwtClient,
             calendarId: config.get('calendarId'),
             timeMin: date,
-            maxResults: 1000
+            maxResults: 1000,
+            quotaUser: uuidv4()
         });
     
         const events = result.data.items;
@@ -166,7 +171,8 @@ async function postEventToCalendar(event) {
         const result = await calendar.events.insert({
             auth: jwtClient,
             calendarId: config.get('calendarId'),
-            resource: event
+            resource: event,
+            quotaUser: uuidv4()
         });
     
         return result;
@@ -192,7 +198,8 @@ async function postEventsToCalendar(events) {
             let res = await calendar.events.insert({
                 auth: jwtClient,
                 calendarId: config.get('calendarId'),
-                resource: events[i]
+                resource: events[i],
+                quotaUser: uuidv4()
             });
 
             succeeded.push(res);
@@ -206,7 +213,8 @@ async function postEventsToCalendar(events) {
             await calendar.events.delete({
                 auth: jwtClient,
                 calendarId: config.get('calendarId'),
-                eventId: succeeded[i].id
+                eventId: succeeded[i].id,
+                quotaUser: uuidv4()
             });
         }
 
@@ -269,7 +277,8 @@ async function deleteEventById(id) {
         const result = await calendar.events.delete({
             auth: jwtClient,
             calendarId: config.get('calendarId'),
-            eventId: id
+            eventId: id,
+            quotaUser: uuidv4()
         });
     
         return result;
