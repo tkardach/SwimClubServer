@@ -48,6 +48,7 @@ async function generateUserInformation(user) {
 
   const allMembers = await sheets.getAllMembers(false);
 
+  // TODO: Catch this properly, change error message
   if (!allMembers)
     return errorResponse(500, 'There was an issue gathering member information, please try again later');
 
@@ -167,6 +168,7 @@ router.post('/signup', async (req, res) => {
 
   const allMembers = await sheets.getAllMembers(false);
 
+  // TODO: Catch this properly, change error message
   if (!allMembers) 
     return res.status(500).send(errorResponse(500, 'There was an error gathering member information, please try again later.'));
 

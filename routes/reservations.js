@@ -187,6 +187,7 @@ router.post('/', async (req, res) => {
   const allMembers = await sheets.getAllMembers(false);
   const paidMembers = await sheets.getAllPaidMembersDict(true);
 
+  // TODO: Catch this properly, change error message
   if (!allMembers) 
     return res.status(500).send(errorResponse(500, 'There was an issue gathering member information, please try again later'));
 

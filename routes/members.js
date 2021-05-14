@@ -25,6 +25,7 @@ router.get('/:id', [admin], async (req, res) => {
     return res.redirect('/api/members/paid-members');
   const members = await sheets.getAllMembersDict(false);
 
+  // TODO: Catch this properly, change error message
   if (!members)
     return res.status(500).send('There was an error gathering member information, please try again later');
 
