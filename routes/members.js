@@ -19,6 +19,14 @@ router.get('/paid-members', [admin], async (req, res) => {
   res.status(200).send(members);
 });
 
+// GET from the database
+router.get('/paid-members-dict', [admin], async (req, res) => {
+  const members = await sheets.getAllPaidMembersDict(false);
+
+  res.status(200).send(members);
+});
+
+
 // GET by id from database
 router.get('/:id', [admin], async (req, res) => {
   if (req.params.id && req.params.id === 'paid-members')
